@@ -95,10 +95,16 @@ class _ThermostatDialState extends State<ThermostatDial> {
           child: SizedBox.fromSize(
             size: size,
             child: GestureDetector(
-              onPanStart: interactive ? (d) => _handle(d.localPosition, size) : null,
-              onPanUpdate: interactive ? (d) => _handle(d.localPosition, size) : null,
-              onPanEnd: interactive ? (_) => _finish() : null,
-              onPanCancel: interactive ? _finish : null,
+              // Glissements verticaux et horizontaux plutôt qu'un « pan » : le cadran l'emporte
+              // ainsi sur le défilement de la page qui le contient.
+              onVerticalDragStart: interactive ? (d) => _handle(d.localPosition, size) : null,
+              onVerticalDragUpdate: interactive ? (d) => _handle(d.localPosition, size) : null,
+              onVerticalDragEnd: interactive ? (_) => _finish() : null,
+              onVerticalDragCancel: interactive ? _finish : null,
+              onHorizontalDragStart: interactive ? (d) => _handle(d.localPosition, size) : null,
+              onHorizontalDragUpdate: interactive ? (d) => _handle(d.localPosition, size) : null,
+              onHorizontalDragEnd: interactive ? (_) => _finish() : null,
+              onHorizontalDragCancel: interactive ? _finish : null,
               child: CustomPaint(
                 painter: _DialPainter(
                   fraction: _fraction(_value),
