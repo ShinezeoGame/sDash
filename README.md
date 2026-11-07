@@ -3,6 +3,11 @@
 Tableau de bord domotique pour tablette Android : lumières, chauffage, volets, prises,
 scènes et réveil des ordinateurs, dans une interface en verre dépoli aux tons cuir et cognac.
 
+<p align="center">
+  <a href="https://github.com/ShinezeoGame/sDash/releases/latest/download/sdash.apk"><img alt="Télécharger la dernière version (APK Android)" src="https://img.shields.io/badge/T%C3%A9l%C3%A9charger-la%20derni%C3%A8re%20version-F0A257?style=for-the-badge&logo=android&logoColor=white&labelColor=3B2516"></a>
+  <a href="https://github.com/ShinezeoGame/sDash/releases/latest"><img alt="Version" src="https://img.shields.io/github/v/release/ShinezeoGame/sDash?style=for-the-badge&label=version&color=C2692B&labelColor=3B2516"></a>
+</p>
+
 ![Accueil de sDash](docs/captures/accueil.jpg)
 
 | Chauffage | Lumières |
@@ -25,12 +30,15 @@ scènes et réveil des ordinateurs, dans une interface en verre dépoli aux tons
 
 ## Installer l'application sur la tablette
 
-L'APK est compilé automatiquement par GitHub Actions à chaque envoi de code :
+1. Depuis la tablette, appuyez sur le bouton **Télécharger la dernière version** en haut de
+   cette page (fichier `sdash.apk`).
+2. Ouvrez le fichier téléchargé et autorisez l'installation d'applications de sources
+   inconnues si Android le demande.
 
-1. Sur GitHub, onglet **Actions** → workflow **Construire l'APK** → dernière exécution réussie.
-2. Téléchargez l'artefact **sdash-apk** (un zip contenant `app-release.apk`).
-3. Copiez l'APK sur la tablette et ouvrez-le (autorisez l'installation d'applications
-   de sources inconnues si Android le demande).
+L'APK est compilé par GitHub Actions et publié dans les
+[Releases](https://github.com/ShinezeoGame/sDash/releases) à chaque envoi sur la branche
+par défaut. Les compilations des autres branches restent disponibles en artefact
+**sdash-apk** dans l'onglet **Actions** (connexion à GitHub requise).
 
 Pour compiler soi-même : `flutter build apk --release` (Flutter 3.47 et le SDK Android requis).
 
