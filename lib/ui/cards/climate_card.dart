@@ -34,7 +34,9 @@ class _ClimateCardState extends State<ClimateCard> {
         child: Column(
           children: [
             CardHeader(title: 'Chauffage'),
-            Expanded(child: EmptyHint(icon: Icons.thermostat_rounded, text: 'Aucun thermostat détecté')),
+            Expanded(
+              child: EmptyHint(icon: Icons.thermostat_rounded, text: 'Aucun thermostat détecté'),
+            ),
           ],
         ),
       );
@@ -118,15 +120,12 @@ class _ClimateCardState extends State<ClimateCard> {
             ),
           ),
           const SizedBox(height: 14),
-          Center(
-            child: PillSelector<ClimateMode>(
-              compact: true,
-              values: climateModeOrder.where(device.supportedModes.contains).toList(),
-              selected: device.mode,
-              labelOf: (m) => m.label,
-              iconOf: climateModeIcon,
-              onSelected: (m) => home.setClimateMode(device.id, m),
-            ),
+          SegmentedPills<ClimateMode>(
+            values: climateModeOrder.where(device.supportedModes.contains).toList(),
+            selected: device.mode,
+            labelOf: (m) => m.label,
+            iconOf: climateModeIcon,
+            onSelected: (m) => home.setClimateMode(device.id, m),
           ),
         ],
       ),

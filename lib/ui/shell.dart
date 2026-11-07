@@ -61,20 +61,22 @@ class _ShellState extends State<Shell> {
     final wide = MediaQuery.sizeOf(context).width >= 700;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        width: wide ? 520 : null,
-        duration: Duration(seconds: message.isError ? 5 : 3),
-        content: Row(
-          children: [
-            Icon(
-              message.isError ? Icons.error_outline_rounded : Icons.check_circle_rounded,
-              color: message.isError ? Palette.rose : Palette.sage,
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message.text)),
-          ],
+      ..showSnackBar(
+        SnackBar(
+          width: wide ? 520 : null,
+          duration: Duration(seconds: message.isError ? 5 : 3),
+          content: Row(
+            children: [
+              Icon(
+                message.isError ? Icons.error_outline_rounded : Icons.check_circle_rounded,
+                color: message.isError ? Palette.rose : Palette.sage,
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(message.text)),
+            ],
+          ),
         ),
-      ));
+      );
   }
 
   void _go(AppSection section) {
@@ -84,13 +86,13 @@ class _ShellState extends State<Shell> {
   }
 
   Widget _page(AppSection section) => switch (section) {
-        AppSection.dashboard => const DashboardPage(),
-        AppSection.lights => const LightsPage(),
-        AppSection.climate => const ClimatePage(),
-        AppSection.covers => const CoversPage(),
-        AppSection.devices => const DevicesPage(),
-        AppSection.settings => const SettingsPage(),
-      };
+    AppSection.dashboard => const DashboardPage(),
+    AppSection.lights => const LightsPage(),
+    AppSection.climate => const ClimatePage(),
+    AppSection.covers => const CoversPage(),
+    AppSection.devices => const DevicesPage(),
+    AppSection.settings => const SettingsPage(),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -196,32 +198,39 @@ class _NavRail extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
       child: SizedBox(
         width: 70,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: Column(
-                  children: [
-                    const _Logo(),
-                    const SizedBox(height: 26),
-                    for (final s in main) ...[
-                      _NavItem(key: ValueKey('nav-${s.name}'), section: s, selected: s == selected, onTap: () => onSelect(s)),
-                      const SizedBox(height: 8),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const _Logo(),
+                      const SizedBox(height: 26),
+                      for (final s in main) ...[
+                        _NavItem(
+                          key: ValueKey('nav-${s.name}'),
+                          section: s,
+                          selected: s == selected,
+                          onTap: () => onSelect(s),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      const Spacer(),
+                      _NavItem(
+                        key: const ValueKey('nav-settings'),
+                        section: AppSection.settings,
+                        selected: selected == AppSection.settings,
+                        onTap: () => onSelect(AppSection.settings),
+                      ),
                     ],
-                    const Spacer(),
-                    _NavItem(
-                      key: const ValueKey('nav-settings'),
-                      section: AppSection.settings,
-                      selected: selected == AppSection.settings,
-                      onTap: () => onSelect(AppSection.settings),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          },
+        ),
       ),
     );
   }
@@ -255,7 +264,9 @@ class _NavItem extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   gradient: selected ? Palette.warm : null,
-                  boxShadow: selected ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.45), blurRadius: 18)] : null,
+                  boxShadow: selected
+                      ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.45), blurRadius: 18)]
+                      : null,
                 ),
                 child: Icon(section.icon, size: 22, color: selected ? Palette.onWarm : Palette.taupe),
               ),
@@ -294,7 +305,14 @@ class _BottomNav extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           for (final s in AppSection.values)
-            Expanded(child: _NavItem(key: ValueKey('nav-${s.name}'), section: s, selected: s == selected, onTap: () => onSelect(s))),
+            Expanded(
+              child: _NavItem(
+                key: ValueKey('nav-${s.name}'),
+                section: s,
+                selected: s == selected,
+                onTap: () => onSelect(s),
+              ),
+            ),
         ],
       ),
     );
@@ -314,7 +332,10 @@ class _TopBar extends StatelessWidget {
     final name = home.settings.userName.trim();
     final date = formatLongDate(now);
     final summary = [
-      if (state.lights.isNotEmpty) state.lightsOn == 0 ? 'lumières éteintes' : '${plural(state.lightsOn, 'lumière')} allumée${state.lightsOn > 1 ? 's' : ''}',
+      if (state.lights.isNotEmpty)
+        state.lightsOn == 0
+            ? 'lumières éteintes'
+            : '${plural(state.lightsOn, 'lumière')} allumée${state.lightsOn > 1 ? 's' : ''}',
       if (state.covers.isNotEmpty) '${plural(state.coversOpen, 'volet')} ouvert${state.coversOpen > 1 ? 's' : ''}',
     ].join(' · ');
     final link = home.link;

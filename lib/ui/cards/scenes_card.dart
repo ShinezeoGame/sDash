@@ -47,42 +47,58 @@ class _ScenesGridState extends State<ScenesGrid> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      const gap = 10.0;
-      final columns = math.max(1, ((constraints.maxWidth + gap) / (widget.minTileWidth + gap)).floor());
-      final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-      final rows = (widget.scenes.length / columns).ceil();
-      final double tileHeight = widget.maxRows != null && constraints.hasBoundedHeight
-          ? ((constraints.maxHeight - gap * (math.min(rows, widget.maxRows!) - 1)) / math.min(rows, widget.maxRows!))
-              .clamp(48.0, 84.0)
-          : 64.0;
-      return SingleChildScrollView(
-        child: Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final scene in widget.scenes)
-              SizedBox(
-                width: width,
-                height: tileHeight,
-                child: _SceneTile(scene: scene, active: _flash == scene.id, onTap: () => _activate(scene)),
-              ),
-          ],
-        ),
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 10.0;
+        final columns = math.max(1, ((constraints.maxWidth + gap) / (widget.minTileWidth + gap)).floor());
+        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        final rows = (widget.scenes.length / columns).ceil();
+        final double tileHeight = widget.maxRows != null && constraints.hasBoundedHeight
+            ? ((constraints.maxHeight - gap * (math.min(rows, widget.maxRows!) - 1)) / math.min(rows, widget.maxRows!))
+                  .clamp(48.0, 84.0)
+            : 64.0;
+        return SingleChildScrollView(
+          child: Wrap(
+            spacing: gap,
+            runSpacing: gap,
+            children: [
+              for (final scene in widget.scenes)
+                SizedBox(
+                  width: width,
+                  height: tileHeight,
+                  child: _SceneTile(
+                    scene: scene,
+                    active: _flash == scene.id,
+                    vertical: width < 130,
+                    onTap: () => _activate(scene),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
 class _SceneTile extends StatelessWidget {
-  const _SceneTile({required this.scene, required this.active, required this.onTap});
+  const _SceneTile({required this.scene, required this.active, required this.onTap, this.vertical = false});
 
   final SceneItem scene;
   final bool active;
   final VoidCallback onTap;
+  final bool vertical;
 
   @override
   Widget build(BuildContext context) {
+    final icon = Icon(sceneIcon(scene.kind), size: 22, color: active ? Palette.onWarm : Palette.honey);
+    final label = Text(
+      scene.name,
+      maxLines: vertical ? 1 : 2,
+      overflow: TextOverflow.ellipsis,
+      textAlign: vertical ? TextAlign.center : TextAlign.start,
+      style: AppText.label.copyWith(fontSize: vertical ? 13 : 14, color: active ? Palette.onWarm : Palette.cream),
+    );
     final reduced = GlassSettings.reducedOf(context);
     return Semantics(
       button: true,
@@ -99,24 +115,19 @@ class _SceneTile extends StatelessWidget {
           child: CustomPaint(
             painter: active ? null : GlassPainter(radius: 20, reduced: reduced, grain: false, strength: 0.8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  Icon(sceneIcon(scene.kind), size: 22, color: active ? Palette.onWarm : Palette.honey),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      scene.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppText.label.copyWith(
-                        fontSize: 14,
-                        color: active ? Palette.onWarm : Palette.cream,
-                      ),
+              padding: EdgeInsets.symmetric(horizontal: vertical ? 6 : 12),
+              child: vertical
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [icon, const SizedBox(height: 5), label],
+                    )
+                  : Row(
+                      children: [
+                        icon,
+                        const SizedBox(width: 10),
+                        Expanded(child: label),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
@@ -140,7 +151,7 @@ class ScenesCard extends StatelessWidget {
           Expanded(
             child: scenes.isEmpty
                 ? const EmptyHint(icon: Icons.auto_awesome_rounded, text: 'Aucune scène disponible')
-                : ScenesGrid(scenes: scenes, minTileWidth: 120, maxRows: 2),
+                : ScenesGrid(scenes: scenes, minTileWidth: 96, maxRows: 2),
           ),
         ],
       ),

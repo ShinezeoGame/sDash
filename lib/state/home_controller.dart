@@ -26,8 +26,8 @@ typedef BackendFactory = HomeBackend Function(AppSettings settings);
 /// puis confirmées par le backend.
 class HomeController extends ChangeNotifier {
   HomeController({SettingsStore? store, BackendFactory? backendFactory, this.applySystemSettings = true})
-      : _store = store ?? SettingsStore(),
-        _backendFactory = backendFactory ?? defaultBackendFactory;
+    : _store = store ?? SettingsStore(),
+      _backendFactory = backendFactory ?? defaultBackendFactory;
 
   final SettingsStore _store;
   final BackendFactory _backendFactory;
@@ -95,10 +95,12 @@ class HomeController extends ChangeNotifier {
     _backend = backend;
     _subscriptions
       ..add(backend.states.listen(_onBackendState))
-      ..add(backend.status.listen((s) {
-        _link = s;
-        _notify();
-      }));
+      ..add(
+        backend.status.listen((s) {
+          _link = s;
+          _notify();
+        }),
+      );
 
     final usesHa = backend is HomeAssistantBackend;
     final direct = DirectComputers([
@@ -107,10 +109,12 @@ class HomeController extends ChangeNotifier {
     ]);
     _direct = direct;
     _directComputers = direct.current;
-    _subscriptions.add(direct.updates.listen((list) {
-      _directComputers = list;
-      _rebuild();
-    }));
+    _subscriptions.add(
+      direct.updates.listen((list) {
+        _directComputers = list;
+        _rebuild();
+      }),
+    );
     direct.start();
     _rebuild();
     unawaited(backend.connect());
@@ -149,9 +153,7 @@ class HomeController extends ChangeNotifier {
   List<T> _mergeLocal<T extends Identified>(List<T> incoming, List<T> local) {
     if (_localEdits.isEmpty) return incoming;
     final byId = {for (final d in local) d.id: d};
-    return [
-      for (final d in incoming) _localEdits.containsKey(d.id) ? (byId[d.id] ?? d) : d,
-    ];
+    return [for (final d in incoming) _localEdits.containsKey(d.id) ? (byId[d.id] ?? d) : d];
   }
 
   void _rebuild({bool preferLocal = false}) {
@@ -219,16 +221,18 @@ class HomeController extends ChangeNotifier {
 
   Future<void> setLight(String id, {bool? on, double? brightness}) {
     _patch(
-      _state.copyWith(lights: [
-        for (final l in _state.lights)
-          if (l.id == id)
-            l.copyWith(
-              isOn: on ?? (brightness != null ? brightness > 0.01 : l.isOn),
-              brightness: brightness != null && brightness > 0.01 ? brightness : null,
-            )
-          else
-            l,
-      ]),
+      _state.copyWith(
+        lights: [
+          for (final l in _state.lights)
+            if (l.id == id)
+              l.copyWith(
+                isOn: on ?? (brightness != null ? brightness > 0.01 : l.isOn),
+                brightness: brightness != null && brightness > 0.01 ? brightness : null,
+              )
+            else
+              l,
+        ],
+      ),
       [id],
     );
     return _run((b) => b.setLight(id, on: on, brightness: brightness));
@@ -252,10 +256,7 @@ class HomeController extends ChangeNotifier {
     final device = _state.switches.where((s) => s.id == id).firstOrNull;
     if (device == null) return;
     final on = !device.isOn;
-    _patch(
-      _state.copyWith(switches: [for (final s in _state.switches) s.id == id ? s.copyWith(isOn: on) : s]),
-      [id],
-    );
+    _patch(_state.copyWith(switches: [for (final s in _state.switches) s.id == id ? s.copyWith(isOn: on) : s]), [id]);
     await _run((b) => b.setSwitch(id, on));
   }
 
@@ -284,10 +285,7 @@ class HomeController extends ChangeNotifier {
   }
 
   Future<void> setClimateMode(String id, ClimateMode mode) {
-    _patch(
-      _state.copyWith(climates: [for (final c in _state.climates) c.id == id ? c.copyWith(mode: mode) : c]),
-      [id],
-    );
+    _patch(_state.copyWith(climates: [for (final c in _state.climates) c.id == id ? c.copyWith(mode: mode) : c]), [id]);
     return _run((b) => b.setClimateMode(id, mode));
   }
 
@@ -297,10 +295,12 @@ class HomeController extends ChangeNotifier {
 
   Future<void> coverCommand(String id, CoverCommand command) => _run((b) => b.coverCommand(id, command));
 
-  Future<void> allCovers(CoverCommand command, {String? roomId}) => _run((b) => Future.wait([
-        for (final c in _state.covers)
-          if (roomId == null || c.roomId == roomId) b.coverCommand(c.id, command),
-      ]));
+  Future<void> allCovers(CoverCommand command, {String? roomId}) => _run(
+    (b) => Future.wait([
+      for (final c in _state.covers)
+        if (roomId == null || c.roomId == roomId) b.coverCommand(c.id, command),
+    ]),
+  );
 
   // ───────────────────────────── Ordinateurs ─────────────────────────────
 

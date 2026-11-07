@@ -21,8 +21,7 @@ RoomKind guessRoomKind(String name) {
 }
 
 class Room {
-  const Room({required this.id, required this.name, RoomKind? kind})
-      : kind = kind ?? RoomKind.generic;
+  const Room({required this.id, required this.name, RoomKind? kind}) : kind = kind ?? RoomKind.generic;
 
   final String id;
   final String name;
@@ -57,25 +56,25 @@ class LightDevice implements Identified {
   final bool available;
 
   LightDevice copyWith({bool? isOn, double? brightness, bool? available}) => LightDevice(
-        id: id,
-        name: name,
-        roomId: roomId,
-        isOn: isOn ?? this.isOn,
-        brightness: brightness ?? this.brightness,
-        dimmable: dimmable,
-        available: available ?? this.available,
-      );
+    id: id,
+    name: name,
+    roomId: roomId,
+    isOn: isOn ?? this.isOn,
+    brightness: brightness ?? this.brightness,
+    dimmable: dimmable,
+    available: available ?? this.available,
+  );
 }
 
 enum ClimateMode { comfort, eco, away, off }
 
 extension ClimateModeLabel on ClimateMode {
   String get label => switch (this) {
-        ClimateMode.comfort => 'Confort',
-        ClimateMode.eco => 'Éco',
-        ClimateMode.away => 'Hors-gel',
-        ClimateMode.off => 'Arrêt',
-      };
+    ClimateMode.comfort => 'Confort',
+    ClimateMode.eco => 'Éco',
+    ClimateMode.away => 'Hors-gel',
+    ClimateMode.off => 'Arrêt',
+  };
 }
 
 class ClimateDevice implements Identified {
@@ -124,22 +123,21 @@ class ClimateDevice implements Identified {
     ClimateMode? mode,
     bool? isHeating,
     bool? available,
-  }) =>
-      ClimateDevice(
-        id: id,
-        name: name,
-        roomId: roomId,
-        currentTemp: currentTemp ?? this.currentTemp,
-        targetTemp: targetTemp ?? this.targetTemp,
-        minTemp: minTemp,
-        maxTemp: maxTemp,
-        step: step,
-        mode: mode ?? this.mode,
-        isHeating: isHeating ?? this.isHeating,
-        humidity: humidity,
-        supportedModes: supportedModes,
-        available: available ?? this.available,
-      );
+  }) => ClimateDevice(
+    id: id,
+    name: name,
+    roomId: roomId,
+    currentTemp: currentTemp ?? this.currentTemp,
+    targetTemp: targetTemp ?? this.targetTemp,
+    minTemp: minTemp,
+    maxTemp: maxTemp,
+    step: step,
+    mode: mode ?? this.mode,
+    isHeating: isHeating ?? this.isHeating,
+    humidity: humidity,
+    supportedModes: supportedModes,
+    available: available ?? this.available,
+  );
 }
 
 enum CoverMotion { idle, opening, closing }
@@ -171,14 +169,14 @@ class CoverDevice implements Identified {
   bool get isOpen => position > 0;
 
   CoverDevice copyWith({int? position, CoverMotion? motion, bool? available}) => CoverDevice(
-        id: id,
-        name: name,
-        roomId: roomId,
-        position: position ?? this.position,
-        motion: motion ?? this.motion,
-        supportsPosition: supportsPosition,
-        available: available ?? this.available,
-      );
+    id: id,
+    name: name,
+    roomId: roomId,
+    position: position ?? this.position,
+    motion: motion ?? this.motion,
+    supportsPosition: supportsPosition,
+    available: available ?? this.available,
+  );
 }
 
 enum SwitchKind { plug, tv, coffee, speaker, fan, generic }
@@ -216,25 +214,25 @@ class SwitchDevice implements Identified {
   final bool available;
 
   SwitchDevice copyWith({bool? isOn, bool? available}) => SwitchDevice(
-        id: id,
-        name: name,
-        roomId: roomId,
-        isOn: isOn ?? this.isOn,
-        kind: kind,
-        available: available ?? this.available,
-      );
+    id: id,
+    name: name,
+    roomId: roomId,
+    isOn: isOn ?? this.isOn,
+    kind: kind,
+    available: available ?? this.available,
+  );
 }
 
 enum PowerState { off, starting, on, stopping, unknown }
 
 extension PowerStateLabel on PowerState {
   String get label => switch (this) {
-        PowerState.off => 'Éteint',
-        PowerState.starting => 'Démarrage…',
-        PowerState.on => 'Allumé',
-        PowerState.stopping => 'Extinction…',
-        PowerState.unknown => 'Inconnu',
-      };
+    PowerState.off => 'Éteint',
+    PowerState.starting => 'Démarrage…',
+    PowerState.on => 'Allumé',
+    PowerState.stopping => 'Extinction…',
+    PowerState.unknown => 'Inconnu',
+  };
 
   bool get isBusy => this == PowerState.starting || this == PowerState.stopping;
 }
@@ -260,13 +258,13 @@ class ComputerDevice implements Identified {
   final bool isServer;
 
   ComputerDevice copyWith({PowerState? state}) => ComputerDevice(
-        id: id,
-        name: name,
-        state: state ?? this.state,
-        detail: detail,
-        canShutdown: canShutdown,
-        isServer: isServer,
-      );
+    id: id,
+    name: name,
+    state: state ?? this.state,
+    detail: detail,
+    canShutdown: canShutdown,
+    isServer: isServer,
+  );
 }
 
 enum SceneKind { cosy, movie, night, morning, away, generic }
@@ -285,15 +283,18 @@ SceneKind guessSceneKind(String name) {
   if (n.contains('réveil') || n.contains('reveil') || n.contains('matin') || n.contains('morning')) {
     return SceneKind.morning;
   }
-  if (n.contains('départ') || n.contains('depart') || n.contains('absent') || n.contains('away') || n.contains('vacances')) {
+  if (n.contains('départ') ||
+      n.contains('depart') ||
+      n.contains('absent') ||
+      n.contains('away') ||
+      n.contains('vacances')) {
     return SceneKind.away;
   }
   return SceneKind.generic;
 }
 
 class SceneItem implements Identified {
-  const SceneItem({required this.id, required this.name, SceneKind? kind})
-      : kind = kind ?? SceneKind.generic;
+  const SceneItem({required this.id, required this.name, SceneKind? kind}) : kind = kind ?? SceneKind.generic;
 
   @override
   final String id;
@@ -304,16 +305,16 @@ class SceneItem implements Identified {
 enum WeatherKind { sunny, partlyCloudy, cloudy, rainy, snowy, stormy, foggy, night, unknown }
 
 WeatherKind weatherFromHomeAssistant(String state) => switch (state) {
-      'sunny' => WeatherKind.sunny,
-      'clear-night' => WeatherKind.night,
-      'partlycloudy' => WeatherKind.partlyCloudy,
-      'cloudy' => WeatherKind.cloudy,
-      'rainy' || 'pouring' => WeatherKind.rainy,
-      'snowy' || 'snowy-rainy' || 'hail' => WeatherKind.snowy,
-      'lightning' || 'lightning-rainy' || 'windy' || 'windy-variant' || 'exceptional' => WeatherKind.stormy,
-      'fog' => WeatherKind.foggy,
-      _ => WeatherKind.unknown,
-    };
+  'sunny' => WeatherKind.sunny,
+  'clear-night' => WeatherKind.night,
+  'partlycloudy' => WeatherKind.partlyCloudy,
+  'cloudy' => WeatherKind.cloudy,
+  'rainy' || 'pouring' => WeatherKind.rainy,
+  'snowy' || 'snowy-rainy' || 'hail' => WeatherKind.snowy,
+  'lightning' || 'lightning-rainy' || 'windy' || 'windy-variant' || 'exceptional' => WeatherKind.stormy,
+  'fog' => WeatherKind.foggy,
+  _ => WeatherKind.unknown,
+};
 
 /// Photographie complète de l'état de la maison à un instant donné.
 class HomeState {
@@ -383,18 +384,17 @@ class HomeState {
     WeatherKind? weather,
     List<double>? energyWeek,
     String? energyUnit,
-  }) =>
-      HomeState(
-        rooms: rooms ?? this.rooms,
-        lights: lights ?? this.lights,
-        climates: climates ?? this.climates,
-        covers: covers ?? this.covers,
-        switches: switches ?? this.switches,
-        computers: computers ?? this.computers,
-        scenes: scenes ?? this.scenes,
-        outdoorTemp: outdoorTemp ?? this.outdoorTemp,
-        weather: weather ?? this.weather,
-        energyWeek: energyWeek ?? this.energyWeek,
-        energyUnit: energyUnit ?? this.energyUnit,
-      );
+  }) => HomeState(
+    rooms: rooms ?? this.rooms,
+    lights: lights ?? this.lights,
+    climates: climates ?? this.climates,
+    covers: covers ?? this.covers,
+    switches: switches ?? this.switches,
+    computers: computers ?? this.computers,
+    scenes: scenes ?? this.scenes,
+    outdoorTemp: outdoorTemp ?? this.outdoorTemp,
+    weather: weather ?? this.weather,
+    energyWeek: energyWeek ?? this.energyWeek,
+    energyUnit: energyUnit ?? this.energyUnit,
+  );
 }

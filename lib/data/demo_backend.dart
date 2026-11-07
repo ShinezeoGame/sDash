@@ -5,10 +5,7 @@ import 'home_backend.dart';
 
 /// Maison simulée : permet d'utiliser et de découvrir l'application sans domotique.
 class DemoBackend implements HomeBackend {
-  DemoBackend({
-    this.tick = const Duration(seconds: 1),
-    this.latency = const Duration(milliseconds: 150),
-  });
+  DemoBackend({this.tick = const Duration(seconds: 1), this.latency = const Duration(milliseconds: 150)});
 
   final Duration tick;
   final Duration latency;
@@ -78,19 +75,19 @@ class DemoBackend implements HomeBackend {
   @override
   Future<void> setSwitch(String id, bool on) async {
     await _later();
-    _home = _home.copyWith(switches: [
-      for (final s in _home.switches) s.id == id ? s.copyWith(isOn: on) : s,
-    ]);
+    _home = _home.copyWith(switches: [for (final s in _home.switches) s.id == id ? s.copyWith(isOn: on) : s]);
     _emit();
   }
 
   @override
   Future<void> setClimateTarget(String id, double target) async {
     await _later();
-    _home = _home.copyWith(climates: [
-      for (final c in _home.climates)
-        if (c.id == id) _withTarget(c, c.clampTarget(target)) else c,
-    ]);
+    _home = _home.copyWith(
+      climates: [
+        for (final c in _home.climates)
+          if (c.id == id) _withTarget(c, c.clampTarget(target)) else c,
+      ],
+    );
     _emit();
   }
 
@@ -102,10 +99,12 @@ class DemoBackend implements HomeBackend {
   @override
   Future<void> setClimateMode(String id, ClimateMode mode) async {
     await _later();
-    _home = _home.copyWith(climates: [
-      for (final c in _home.climates)
-        if (c.id == id) _withMode(c, mode) else c,
-    ]);
+    _home = _home.copyWith(
+      climates: [
+        for (final c in _home.climates)
+          if (c.id == id) _withMode(c, mode) else c,
+      ],
+    );
     _emit();
   }
 
@@ -146,27 +145,31 @@ class DemoBackend implements HomeBackend {
   }
 
   void _updateCoverMotion() {
-    _home = _home.copyWith(covers: [
-      for (final c in _home.covers)
-        c.copyWith(
-          motion: switch (_coverTargets[c.id]) {
-            null => CoverMotion.idle,
-            final t when t > c.position => CoverMotion.opening,
-            final t when t < c.position => CoverMotion.closing,
-            _ => CoverMotion.idle,
-          },
-        ),
-    ]);
+    _home = _home.copyWith(
+      covers: [
+        for (final c in _home.covers)
+          c.copyWith(
+            motion: switch (_coverTargets[c.id]) {
+              null => CoverMotion.idle,
+              final t when t > c.position => CoverMotion.opening,
+              final t when t < c.position => CoverMotion.closing,
+              _ => CoverMotion.idle,
+            },
+          ),
+      ],
+    );
   }
 
   @override
   Future<void> setComputerPower(String id, bool on) async {
     await _later();
     _computerBusy[id] = DateTime.now();
-    _home = _home.copyWith(computers: [
-      for (final c in _home.computers)
-        if (c.id == id) c.copyWith(state: on ? PowerState.starting : PowerState.stopping) else c,
-    ]);
+    _home = _home.copyWith(
+      computers: [
+        for (final c in _home.computers)
+          if (c.id == id) c.copyWith(state: on ? PowerState.starting : PowerState.stopping) else c,
+      ],
+    );
     _emit();
   }
 
@@ -193,23 +196,22 @@ class DemoBackend implements HomeBackend {
 
     switch (kind) {
       case SceneKind.cosy:
-        _home = _home.copyWith(lights: [
-          for (final l in _home.lights)
-            switch (l.id) {
-              'light.salon_lampe' => light(l, true, 0.55),
-              'light.salon_led' => light(l, true, 0.35),
-              'light.salon_plafond' => light(l, false),
-              _ => l,
-            },
-        ]);
+        _home = _home.copyWith(
+          lights: [
+            for (final l in _home.lights)
+              switch (l.id) {
+                'light.salon_lampe' => light(l, true, 0.55),
+                'light.salon_led' => light(l, true, 0.35),
+                'light.salon_plafond' => light(l, false),
+                _ => l,
+              },
+          ],
+        );
         covers(0, room: 'salon');
         climates(ClimateMode.comfort);
       case SceneKind.movie:
         _home = _home.copyWith(
-          lights: [
-            for (final l in _home.lights)
-              l.roomId == 'salon' ? light(l, l.id == 'light.salon_led', 0.15) : l,
-          ],
+          lights: [for (final l in _home.lights) l.roomId == 'salon' ? light(l, l.id == 'light.salon_led', 0.15) : l],
           switches: [for (final s in _home.switches) s.kind == SwitchKind.tv ? s.copyWith(isOn: true) : s],
         );
         covers(0, room: 'salon');
@@ -217,7 +219,8 @@ class DemoBackend implements HomeBackend {
         _home = _home.copyWith(
           lights: [for (final l in _home.lights) light(l, false)],
           switches: [
-            for (final s in _home.switches) s.kind == SwitchKind.tv || s.kind == SwitchKind.coffee ? s.copyWith(isOn: false) : s,
+            for (final s in _home.switches)
+              s.kind == SwitchKind.tv || s.kind == SwitchKind.coffee ? s.copyWith(isOn: false) : s,
           ],
         );
         covers(0);
@@ -291,13 +294,15 @@ class DemoBackend implements HomeBackend {
           .toSet();
       if (done.isNotEmpty) {
         _computerBusy.removeWhere((k, _) => done.contains(k));
-        _home = _home.copyWith(computers: [
-          for (final c in _home.computers)
-            if (done.contains(c.id))
-              c.copyWith(state: c.state == PowerState.starting ? PowerState.on : PowerState.off)
-            else
-              c,
-        ]);
+        _home = _home.copyWith(
+          computers: [
+            for (final c in _home.computers)
+              if (done.contains(c.id))
+                c.copyWith(state: c.state == PowerState.starting ? PowerState.on : PowerState.off)
+              else
+                c,
+          ],
+        );
         changed = true;
       }
     }
@@ -308,92 +313,92 @@ class DemoBackend implements HomeBackend {
 
 /// État initial de la maison de démonstration.
 HomeState demoHome() => const HomeState(
-      rooms: [
-        Room(id: 'salon', name: 'Salon', kind: RoomKind.living),
-        Room(id: 'cuisine', name: 'Cuisine', kind: RoomKind.kitchen),
-        Room(id: 'chambre', name: 'Chambre', kind: RoomKind.bedroom),
-        Room(id: 'bureau', name: 'Bureau', kind: RoomKind.office),
-        Room(id: 'sdb', name: 'Salle de bain', kind: RoomKind.bathroom),
-        Room(id: 'entree', name: 'Entrée', kind: RoomKind.entrance),
-      ],
-      lights: [
-        LightDevice(id: 'light.salon_plafond', name: 'Plafonnier', roomId: 'salon', isOn: true, brightness: 0.8),
-        LightDevice(id: 'light.salon_lampe', name: 'Lampe de lecture', roomId: 'salon', isOn: true, brightness: 0.45),
-        LightDevice(id: 'light.salon_led', name: 'Ruban LED', roomId: 'salon', brightness: 0.35),
-        LightDevice(id: 'light.cuisine_suspensions', name: 'Suspensions', roomId: 'cuisine', brightness: 1),
-        LightDevice(id: 'light.cuisine_plan', name: 'Plan de travail', roomId: 'cuisine', isOn: true, dimmable: false),
-        LightDevice(id: 'light.chambre_chevet', name: 'Chevet', roomId: 'chambre', brightness: 0.3),
-        LightDevice(id: 'light.bureau_lampe', name: 'Lampe de bureau', roomId: 'bureau', isOn: true, brightness: 0.7),
-        LightDevice(id: 'light.sdb_miroir', name: 'Miroir', roomId: 'sdb', brightness: 0.9),
-        LightDevice(id: 'light.entree_applique', name: 'Applique', roomId: 'entree', dimmable: false),
-      ],
-      climates: [
-        ClimateDevice(
-          id: 'climate.salon',
-          name: 'Salon',
-          roomId: 'salon',
-          currentTemp: 20.6,
-          targetTemp: 21.5,
-          isHeating: true,
-          humidity: 46,
-        ),
-        ClimateDevice(
-          id: 'climate.chambre',
-          name: 'Chambre',
-          roomId: 'chambre',
-          currentTemp: 18.3,
-          targetTemp: 18.0,
-          mode: ClimateMode.eco,
-          humidity: 51,
-        ),
-        ClimateDevice(id: 'climate.bureau', name: 'Bureau', roomId: 'bureau', currentTemp: 19.8, targetTemp: 20.0),
-        ClimateDevice(
-          id: 'climate.sdb',
-          name: 'Salle de bain',
-          roomId: 'sdb',
-          currentTemp: 21.4,
-          targetTemp: 22.0,
-          humidity: 63,
-        ),
-      ],
-      covers: [
-        CoverDevice(id: 'cover.salon_baie', name: 'Baie vitrée', roomId: 'salon', position: 100),
-        CoverDevice(id: 'cover.salon_fenetre', name: 'Fenêtre', roomId: 'salon', position: 65),
-        CoverDevice(id: 'cover.chambre', name: 'Fenêtre', roomId: 'chambre', position: 0),
-        CoverDevice(id: 'cover.bureau', name: 'Velux', roomId: 'bureau', position: 40),
-        CoverDevice(id: 'cover.cuisine', name: 'Fenêtre', roomId: 'cuisine', position: 100),
-      ],
-      switches: [
-        SwitchDevice(id: 'switch.tv', name: 'Télévision', roomId: 'salon', kind: SwitchKind.tv),
-        SwitchDevice(id: 'switch.enceinte', name: 'Enceinte', roomId: 'salon', isOn: true, kind: SwitchKind.speaker),
-        SwitchDevice(id: 'switch.cafe', name: 'Machine à café', roomId: 'cuisine', kind: SwitchKind.coffee),
-        SwitchDevice(id: 'switch.ventilo', name: 'Ventilateur', roomId: 'chambre', kind: SwitchKind.fan),
-      ],
-      computers: [
-        ComputerDevice(
-          id: 'pc.demo_gamer',
-          name: 'PC du bureau',
-          state: PowerState.off,
-          detail: '192.168.1.42',
-          canShutdown: true,
-        ),
-        ComputerDevice(
-          id: 'pc.demo_nas',
-          name: 'NAS',
-          state: PowerState.on,
-          detail: '192.168.1.10',
-          canShutdown: true,
-          isServer: true,
-        ),
-      ],
-      scenes: [
-        SceneItem(id: 'scene.cosy', name: 'Soirée cosy', kind: SceneKind.cosy),
-        SceneItem(id: 'scene.cinema', name: 'Cinéma', kind: SceneKind.movie),
-        SceneItem(id: 'scene.nuit', name: 'Bonne nuit', kind: SceneKind.night),
-        SceneItem(id: 'scene.reveil', name: 'Réveil', kind: SceneKind.morning),
-        SceneItem(id: 'scene.depart', name: 'Départ', kind: SceneKind.away),
-      ],
-      outdoorTemp: 8.5,
-      weather: WeatherKind.partlyCloudy,
-      energyWeek: [5.8, 6.4, 7.9, 6.1, 8.7, 9.6, 4.2],
-    );
+  rooms: [
+    Room(id: 'salon', name: 'Salon', kind: RoomKind.living),
+    Room(id: 'cuisine', name: 'Cuisine', kind: RoomKind.kitchen),
+    Room(id: 'chambre', name: 'Chambre', kind: RoomKind.bedroom),
+    Room(id: 'bureau', name: 'Bureau', kind: RoomKind.office),
+    Room(id: 'sdb', name: 'Salle de bain', kind: RoomKind.bathroom),
+    Room(id: 'entree', name: 'Entrée', kind: RoomKind.entrance),
+  ],
+  lights: [
+    LightDevice(id: 'light.salon_plafond', name: 'Plafonnier', roomId: 'salon', isOn: true, brightness: 0.8),
+    LightDevice(id: 'light.salon_lampe', name: 'Lampe de lecture', roomId: 'salon', isOn: true, brightness: 0.45),
+    LightDevice(id: 'light.salon_led', name: 'Ruban LED', roomId: 'salon', brightness: 0.35),
+    LightDevice(id: 'light.cuisine_suspensions', name: 'Suspensions', roomId: 'cuisine', brightness: 1),
+    LightDevice(id: 'light.cuisine_plan', name: 'Plan de travail', roomId: 'cuisine', isOn: true, dimmable: false),
+    LightDevice(id: 'light.chambre_chevet', name: 'Chevet', roomId: 'chambre', brightness: 0.3),
+    LightDevice(id: 'light.bureau_lampe', name: 'Lampe de bureau', roomId: 'bureau', isOn: true, brightness: 0.7),
+    LightDevice(id: 'light.sdb_miroir', name: 'Miroir', roomId: 'sdb', brightness: 0.9),
+    LightDevice(id: 'light.entree_applique', name: 'Applique', roomId: 'entree', dimmable: false),
+  ],
+  climates: [
+    ClimateDevice(
+      id: 'climate.salon',
+      name: 'Salon',
+      roomId: 'salon',
+      currentTemp: 20.6,
+      targetTemp: 21.5,
+      isHeating: true,
+      humidity: 46,
+    ),
+    ClimateDevice(
+      id: 'climate.chambre',
+      name: 'Chambre',
+      roomId: 'chambre',
+      currentTemp: 18.3,
+      targetTemp: 18.0,
+      mode: ClimateMode.eco,
+      humidity: 51,
+    ),
+    ClimateDevice(id: 'climate.bureau', name: 'Bureau', roomId: 'bureau', currentTemp: 19.8, targetTemp: 20.0),
+    ClimateDevice(
+      id: 'climate.sdb',
+      name: 'Salle de bain',
+      roomId: 'sdb',
+      currentTemp: 21.4,
+      targetTemp: 22.0,
+      humidity: 63,
+    ),
+  ],
+  covers: [
+    CoverDevice(id: 'cover.salon_baie', name: 'Baie vitrée', roomId: 'salon', position: 100),
+    CoverDevice(id: 'cover.salon_fenetre', name: 'Fenêtre', roomId: 'salon', position: 65),
+    CoverDevice(id: 'cover.chambre', name: 'Fenêtre', roomId: 'chambre', position: 0),
+    CoverDevice(id: 'cover.bureau', name: 'Velux', roomId: 'bureau', position: 40),
+    CoverDevice(id: 'cover.cuisine', name: 'Fenêtre', roomId: 'cuisine', position: 100),
+  ],
+  switches: [
+    SwitchDevice(id: 'switch.tv', name: 'Télévision', roomId: 'salon', kind: SwitchKind.tv),
+    SwitchDevice(id: 'switch.enceinte', name: 'Enceinte', roomId: 'salon', isOn: true, kind: SwitchKind.speaker),
+    SwitchDevice(id: 'switch.cafe', name: 'Machine à café', roomId: 'cuisine', kind: SwitchKind.coffee),
+    SwitchDevice(id: 'switch.ventilo', name: 'Ventilateur', roomId: 'chambre', kind: SwitchKind.fan),
+  ],
+  computers: [
+    ComputerDevice(
+      id: 'pc.demo_gamer',
+      name: 'PC du bureau',
+      state: PowerState.off,
+      detail: '192.168.1.42',
+      canShutdown: true,
+    ),
+    ComputerDevice(
+      id: 'pc.demo_nas',
+      name: 'NAS',
+      state: PowerState.on,
+      detail: '192.168.1.10',
+      canShutdown: true,
+      isServer: true,
+    ),
+  ],
+  scenes: [
+    SceneItem(id: 'scene.cosy', name: 'Soirée cosy', kind: SceneKind.cosy),
+    SceneItem(id: 'scene.cinema', name: 'Cinéma', kind: SceneKind.movie),
+    SceneItem(id: 'scene.nuit', name: 'Bonne nuit', kind: SceneKind.night),
+    SceneItem(id: 'scene.reveil', name: 'Réveil', kind: SceneKind.morning),
+    SceneItem(id: 'scene.depart', name: 'Départ', kind: SceneKind.away),
+  ],
+  outdoorTemp: 8.5,
+  weather: WeatherKind.partlyCloudy,
+  energyWeek: [5.8, 6.4, 7.9, 6.1, 8.7, 9.6, 4.2],
+);

@@ -6,8 +6,7 @@ Future<void> sendMagicPacket(String mac, {String broadcast = '255.255.255.255', 
   throw UnsupportedError('Le réveil réseau n’est disponible que sur la tablette.');
 }
 
-Future<bool> isHostReachable(String host, {Duration timeout = const Duration(milliseconds: 900)}) async =>
-    false;
+Future<bool> isHostReachable(String host, {Duration timeout = const Duration(milliseconds: 900)}) async => false;
 
 Future<void> sendHttpCommand(String url, {String method = 'POST'}) {
   throw UnsupportedError('Commande indisponible dans l’aperçu web.');

@@ -44,36 +44,35 @@ class ComputerConfig {
     String? broadcast,
     String? shutdownUrl,
     String? haEntity,
-  }) =>
-      ComputerConfig(
-        id: id,
-        name: name ?? this.name,
-        mac: mac ?? this.mac,
-        host: host ?? this.host,
-        broadcast: broadcast ?? this.broadcast,
-        shutdownUrl: shutdownUrl ?? this.shutdownUrl,
-        haEntity: haEntity ?? this.haEntity,
-      );
+  }) => ComputerConfig(
+    id: id,
+    name: name ?? this.name,
+    mac: mac ?? this.mac,
+    host: host ?? this.host,
+    broadcast: broadcast ?? this.broadcast,
+    shutdownUrl: shutdownUrl ?? this.shutdownUrl,
+    haEntity: haEntity ?? this.haEntity,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'mac': mac,
-        'host': host,
-        'broadcast': broadcast,
-        'shutdownUrl': shutdownUrl,
-        'haEntity': haEntity,
-      };
+    'id': id,
+    'name': name,
+    'mac': mac,
+    'host': host,
+    'broadcast': broadcast,
+    'shutdownUrl': shutdownUrl,
+    'haEntity': haEntity,
+  };
 
   factory ComputerConfig.fromJson(Map<String, dynamic> json) => ComputerConfig(
-        id: json['id'] as String? ?? DateTime.now().microsecondsSinceEpoch.toString(),
-        name: json['name'] as String? ?? 'Ordinateur',
-        mac: json['mac'] as String? ?? '',
-        host: json['host'] as String? ?? '',
-        broadcast: json['broadcast'] as String? ?? '255.255.255.255',
-        shutdownUrl: json['shutdownUrl'] as String? ?? '',
-        haEntity: json['haEntity'] as String? ?? '',
-      );
+    id: json['id'] as String? ?? DateTime.now().microsecondsSinceEpoch.toString(),
+    name: json['name'] as String? ?? 'Ordinateur',
+    mac: json['mac'] as String? ?? '',
+    host: json['host'] as String? ?? '',
+    broadcast: json['broadcast'] as String? ?? '255.255.255.255',
+    shutdownUrl: json['shutdownUrl'] as String? ?? '',
+    haEntity: json['haEntity'] as String? ?? '',
+  );
 }
 
 class AppSettings {
@@ -124,48 +123,44 @@ class AppSettings {
     bool? reducedGlass,
     bool? keepScreenOn,
     bool? immersive,
-  }) =>
-      AppSettings(
-        userName: userName ?? this.userName,
-        backend: backend ?? this.backend,
-        haUrl: haUrl ?? this.haUrl,
-        haToken: haToken ?? this.haToken,
-        energySensor: energySensor ?? this.energySensor,
-        computers: computers ?? this.computers,
-        reducedGlass: reducedGlass ?? this.reducedGlass,
-        keepScreenOn: keepScreenOn ?? this.keepScreenOn,
-        immersive: immersive ?? this.immersive,
-      );
+  }) => AppSettings(
+    userName: userName ?? this.userName,
+    backend: backend ?? this.backend,
+    haUrl: haUrl ?? this.haUrl,
+    haToken: haToken ?? this.haToken,
+    energySensor: energySensor ?? this.energySensor,
+    computers: computers ?? this.computers,
+    reducedGlass: reducedGlass ?? this.reducedGlass,
+    keepScreenOn: keepScreenOn ?? this.keepScreenOn,
+    immersive: immersive ?? this.immersive,
+  );
 
   Map<String, dynamic> toJson() => {
-        'userName': userName,
-        'backend': backend.name,
-        'haUrl': haUrl,
-        'haToken': haToken,
-        'energySensor': energySensor,
-        'computers': computers.map((c) => c.toJson()).toList(),
-        'reducedGlass': reducedGlass,
-        'keepScreenOn': keepScreenOn,
-        'immersive': immersive,
-      };
+    'userName': userName,
+    'backend': backend.name,
+    'haUrl': haUrl,
+    'haToken': haToken,
+    'energySensor': energySensor,
+    'computers': computers.map((c) => c.toJson()).toList(),
+    'reducedGlass': reducedGlass,
+    'keepScreenOn': keepScreenOn,
+    'immersive': immersive,
+  };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
-        userName: json['userName'] as String? ?? '',
-        backend: BackendKind.values.firstWhere(
-          (b) => b.name == json['backend'],
-          orElse: () => BackendKind.demo,
-        ),
-        haUrl: json['haUrl'] as String? ?? '',
-        haToken: json['haToken'] as String? ?? '',
-        energySensor: json['energySensor'] as String? ?? '',
-        computers: (json['computers'] as List<dynamic>? ?? const [])
-            .whereType<Map<String, dynamic>>()
-            .map(ComputerConfig.fromJson)
-            .toList(),
-        reducedGlass: json['reducedGlass'] as bool? ?? false,
-        keepScreenOn: json['keepScreenOn'] as bool? ?? true,
-        immersive: json['immersive'] as bool? ?? true,
-      );
+    userName: json['userName'] as String? ?? '',
+    backend: BackendKind.values.firstWhere((b) => b.name == json['backend'], orElse: () => BackendKind.demo),
+    haUrl: json['haUrl'] as String? ?? '',
+    haToken: json['haToken'] as String? ?? '',
+    energySensor: json['energySensor'] as String? ?? '',
+    computers: (json['computers'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(ComputerConfig.fromJson)
+        .toList(),
+    reducedGlass: json['reducedGlass'] as bool? ?? false,
+    keepScreenOn: json['keepScreenOn'] as bool? ?? true,
+    immersive: json['immersive'] as bool? ?? true,
+  );
 }
 
 /// Persistance des réglages dans le stockage privé de l'application.

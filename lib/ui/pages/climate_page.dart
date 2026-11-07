@@ -28,7 +28,9 @@ class ClimatePage extends StatelessWidget {
       ].join(' · '),
       children: [
         if (state.climates.isEmpty)
-          const GlassCard(child: EmptyHint(icon: Icons.thermostat_rounded, text: 'Aucun thermostat détecté')),
+          const GlassCard(
+            child: EmptyHint(icon: Icons.thermostat_rounded, text: 'Aucun thermostat détecté'),
+          ),
         TileGrid(
           minTileWidth: 330,
           tileHeight: 450,
@@ -57,7 +59,10 @@ class ClimateTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              IconOrb(icon: room != null ? roomIcon(room.kind) : Icons.thermostat_rounded, active: device.isHeating && !off),
+              IconOrb(
+                icon: room != null ? roomIcon(room.kind) : Icons.thermostat_rounded,
+                active: device.isHeating && !off,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: CardHeader(
@@ -104,15 +109,12 @@ class ClimateTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Center(
-            child: PillSelector<ClimateMode>(
-              compact: true,
-              values: climateModeOrder.where(device.supportedModes.contains).toList(),
-              selected: device.mode,
-              labelOf: (m) => m.label,
-              iconOf: climateModeIcon,
-              onSelected: (m) => home.setClimateMode(device.id, m),
-            ),
+          SegmentedPills<ClimateMode>(
+            values: climateModeOrder.where(device.supportedModes.contains).toList(),
+            selected: device.mode,
+            labelOf: (m) => m.label,
+            iconOf: climateModeIcon,
+            onSelected: (m) => home.setClimateMode(device.id, m),
           ),
         ],
       ),

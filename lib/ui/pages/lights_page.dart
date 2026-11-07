@@ -21,7 +21,9 @@ class LightsPage extends StatelessWidget {
     final groups = lightsByRoom(state);
     return DetailPage(
       title: 'Lumières',
-      subtitle: state.lights.isEmpty ? 'Aucune lumière' : '${plural(state.lightsOn, 'allumée')} sur ${state.lights.length}',
+      subtitle: state.lights.isEmpty
+          ? 'Aucune lumière'
+          : '${plural(state.lightsOn, 'allumée')} sur ${state.lights.length}',
       actions: [
         PillButton(
           label: 'Tout allumer',
@@ -37,21 +39,22 @@ class LightsPage extends StatelessWidget {
       ],
       children: [
         if (groups.isEmpty)
-          const GlassCard(child: EmptyHint(icon: Icons.lightbulb_outline_rounded, text: 'Aucune lumière détectée')),
+          const GlassCard(
+            child: EmptyHint(icon: Icons.lightbulb_outline_rounded, text: 'Aucune lumière détectée'),
+          ),
         for (final (room, lights) in groups) ...[
           SectionTitle(
             text: room.name,
             icon: roomIcon(room.kind),
             trailing: GlowToggle(
               value: lights.any((l) => l.isOn),
-              onChanged: (v) => Future.wait([for (final l in lights) if (l.isOn != v) home.setLight(l.id, on: v)]),
+              onChanged: (v) => Future.wait([
+                for (final l in lights)
+                  if (l.isOn != v) home.setLight(l.id, on: v),
+              ]),
             ),
           ),
-          TileGrid(
-            minTileWidth: 250,
-            tileHeight: 176,
-            children: [for (final l in lights) LightTile(light: l)],
-          ),
+          TileGrid(minTileWidth: 250, tileHeight: 176, children: [for (final l in lights) LightTile(light: l)]),
           const SizedBox(height: 26),
         ],
       ],
@@ -70,8 +73,8 @@ class LightTile extends StatelessWidget {
     final status = !light.available
         ? 'Indisponible'
         : light.isOn
-            ? (light.dimmable ? 'Allumée · ${(light.brightness * 100).round()} %' : 'Allumée')
-            : 'Éteinte';
+        ? (light.dimmable ? 'Allumée · ${(light.brightness * 100).round()} %' : 'Allumée')
+        : 'Éteinte';
     return GlassCard(
       tint: light.isOn ? Palette.amber : null,
       padding: const EdgeInsets.all(18),
@@ -96,15 +99,25 @@ class LightTile extends StatelessWidget {
           Text(status, style: AppText.label),
           const SizedBox(height: 12),
           if (light.dimmable)
-            WarmSlider(
-              value: light.brightness,
-              height: 34,
-              enabled: light.available,
-              icon: Icons.wb_sunny_rounded,
-              onChangeEnd: (v) => home.setLight(light.id, brightness: v),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: light.isOn ? 1 : 0.55,
+              child: WarmSlider(
+                value: light.brightness,
+                height: 34,
+                enabled: light.available,
+                icon: Icons.wb_sunny_rounded,
+                onChangeEnd: (v) => home.setLight(light.id, brightness: v),
+              ),
             )
           else
-            const SizedBox(height: 34, child: Align(alignment: Alignment.centerLeft, child: Text('Non variable', style: AppText.caption))),
+            const SizedBox(
+              height: 34,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Non variable', style: AppText.caption),
+              ),
+            ),
         ],
       ),
     );

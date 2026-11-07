@@ -118,93 +118,95 @@ class _WarmSliderState extends State<WarmSlider> {
   @override
   Widget build(BuildContext context) {
     final label = widget.label ?? (v) => '${(v * 100).round()} %';
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      final h = widget.height;
-      final fill = h + (_value * (width - h));
-      final active = widget.enabled;
-      final reduced = GlassSettings.reducedOf(context);
-      return Opacity(
-        opacity: active ? 1 : 0.45,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapUp: active
-              ? (d) {
-                  _update(d.localPosition, width);
-                  _end();
-                }
-              : null,
-          onHorizontalDragStart: active ? (d) => _update(d.localPosition, width) : null,
-          onHorizontalDragUpdate: active ? (d) => _update(d.localPosition, width) : null,
-          onHorizontalDragEnd: active ? (_) => _end() : null,
-          onHorizontalDragCancel: active ? () => setState(() => _dragValue = null) : null,
-          child: SizedBox(
-            height: h,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: GlassPainter(radius: h / 2, reduced: reduced, grain: false, strength: 0.6),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(h / 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final h = widget.height;
+        final fill = h + (_value * (width - h));
+        final active = widget.enabled;
+        final reduced = GlassSettings.reducedOf(context);
+        return Opacity(
+          opacity: active ? 1 : 0.45,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapUp: active
+                ? (d) {
+                    _update(d.localPosition, width);
+                    _end();
+                  }
+                : null,
+            onHorizontalDragStart: active ? (d) => _update(d.localPosition, width) : null,
+            onHorizontalDragUpdate: active ? (d) => _update(d.localPosition, width) : null,
+            onHorizontalDragEnd: active ? (_) => _end() : null,
+            onHorizontalDragCancel: active ? () => setState(() => _dragValue = null) : null,
+            child: SizedBox(
+              height: h,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: GlassPainter(radius: h / 2, reduced: reduced, grain: false, strength: 0.6),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(h / 2),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                AnimatedContainer(
-                  duration: _dragValue == null ? const Duration(milliseconds: 220) : Duration.zero,
-                  curve: Curves.easeOutCubic,
-                  width: fill,
-                  height: h,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(h / 2),
-                    gradient: const LinearGradient(colors: [Palette.cognac, Palette.amber, Palette.honey]),
-                    boxShadow: [
-                      BoxShadow(color: Palette.ember.withValues(alpha: 0.30), blurRadius: 14, spreadRadius: -4),
-                    ],
-                  ),
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(left: h * 0.42),
-                  child: fill > h * 2.2
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (widget.icon != null) ...[
-                              Icon(widget.icon, size: h * 0.42, color: Palette.onWarm),
-                              const SizedBox(width: 6),
-                            ],
-                            Text(
-                              label(_value),
-                              maxLines: 1,
-                              style: AppText.label.copyWith(color: Palette.onWarm, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        )
-                      : null,
-                ),
-                // Poignée discrète au bout de la partie remplie.
-                AnimatedPositioned(
-                  duration: _dragValue == null ? const Duration(milliseconds: 220) : Duration.zero,
-                  curve: Curves.easeOutCubic,
-                  left: fill - h * 0.32,
-                  top: h * 0.28,
-                  child: Container(
-                    width: 3,
-                    height: h * 0.44,
+                  AnimatedContainer(
+                    duration: _dragValue == null ? const Duration(milliseconds: 220) : Duration.zero,
+                    curve: Curves.easeOutCubic,
+                    width: fill,
+                    height: h,
                     decoration: BoxDecoration(
-                      color: Palette.cream.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(2),
+                      borderRadius: BorderRadius.circular(h / 2),
+                      gradient: const LinearGradient(colors: [Palette.cognac, Palette.amber, Palette.honey]),
+                      boxShadow: [
+                        BoxShadow(color: Palette.ember.withValues(alpha: 0.30), blurRadius: 14, spreadRadius: -4),
+                      ],
+                    ),
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.only(left: h * 0.42),
+                    child: fill > h * 2.2
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (widget.icon != null) ...[
+                                Icon(widget.icon, size: h * 0.42, color: Palette.onWarm),
+                                const SizedBox(width: 6),
+                              ],
+                              Text(
+                                label(_value),
+                                maxLines: 1,
+                                style: AppText.label.copyWith(color: Palette.onWarm, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          )
+                        : null,
+                  ),
+                  // Poignée discrète au bout de la partie remplie.
+                  AnimatedPositioned(
+                    duration: _dragValue == null ? const Duration(milliseconds: 220) : Duration.zero,
+                    curve: Curves.easeOutCubic,
+                    left: fill - h * 0.32,
+                    top: h * 0.28,
+                    child: Container(
+                      width: 3,
+                      height: h * 0.44,
+                      decoration: BoxDecoration(
+                        color: Palette.cream.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -352,6 +354,97 @@ class PillSelector<T> extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Contrôle segmenté : une gélule de verre partagée en segments égaux.
+/// Les icônes disparaissent automatiquement quand la place manque.
+class SegmentedPills<T> extends StatelessWidget {
+  const SegmentedPills({
+    super.key,
+    required this.values,
+    required this.selected,
+    required this.labelOf,
+    required this.onSelected,
+    this.iconOf,
+    this.height = 40,
+  });
+
+  final List<T> values;
+  final T? selected;
+  final String Function(T value) labelOf;
+  final IconData Function(T value)? iconOf;
+  final ValueChanged<T> onSelected;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduced = GlassSettings.reducedOf(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final perSegment = constraints.maxWidth / values.length;
+        final showIcons = iconOf != null && perSegment >= 100;
+        return CustomPaint(
+          painter: GlassPainter(radius: 100, reduced: reduced, grain: false, strength: 0.7),
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              children: [
+                for (final v in values)
+                  Expanded(
+                    child: Semantics(
+                      button: true,
+                      selected: v == selected,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          onSelected(v);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 240),
+                          curve: Curves.easeOutCubic,
+                          height: height - 8,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            gradient: v == selected ? Palette.warm : null,
+                            boxShadow: v == selected
+                                ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.35), blurRadius: 14)]
+                                : null,
+                          ),
+                          alignment: Alignment.center,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (showIcons) ...[
+                                  Icon(iconOf!(v), size: 16, color: v == selected ? Palette.onWarm : Palette.sand),
+                                  const SizedBox(width: 5),
+                                ],
+                                Text(
+                                  labelOf(v),
+                                  maxLines: 1,
+                                  style: AppText.label.copyWith(
+                                    fontSize: 14,
+                                    color: v == selected ? Palette.onWarm : Palette.sand,
+                                    fontWeight: v == selected ? FontWeight.w600 : FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -27,11 +27,7 @@ abstract final class Palette {
   static const frost = Color(0xFFA3C9D8);
 
   /// Dégradé principal des éléments actifs (miel → braise).
-  static const warm = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [honey, ember],
-  );
+  static const warm = LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [honey, ember]);
 
   /// Texte sombre posé sur le dégradé chaud.
   static const onWarm = Color(0xFF2B1608);
@@ -186,16 +182,10 @@ ThemeData buildTheme() {
       contentTextStyle: AppText.body,
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: Palette.amber,
-        textStyle: AppText.subtitle.copyWith(fontSize: 15),
-      ),
+      style: TextButton.styleFrom(foregroundColor: Palette.amber, textStyle: AppText.subtitle.copyWith(fontSize: 15)),
     ),
     tooltipTheme: TooltipThemeData(
-      decoration: BoxDecoration(
-        color: const Color(0xF02A1A10),
-        borderRadius: BorderRadius.circular(10),
-      ),
+      decoration: BoxDecoration(color: const Color(0xF02A1A10), borderRadius: BorderRadius.circular(10)),
       textStyle: AppText.label.copyWith(color: Palette.cream),
     ),
     scrollbarTheme: ScrollbarThemeData(

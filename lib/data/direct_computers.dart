@@ -31,15 +31,15 @@ class DirectComputers {
   bool owns(String deviceId) => configs.any((c) => DirectComputers.deviceId(c) == deviceId);
 
   List<ComputerDevice> get current => [
-        for (final c in configs)
-          ComputerDevice(
-            id: deviceId(c),
-            name: c.name,
-            state: _states[c.id] ?? PowerState.unknown,
-            detail: c.host.isNotEmpty ? c.host : (c.mac.isNotEmpty ? c.mac.toUpperCase() : null),
-            canShutdown: c.shutdownUrl.trim().isNotEmpty,
-          ),
-      ];
+    for (final c in configs)
+      ComputerDevice(
+        id: deviceId(c),
+        name: c.name,
+        state: _states[c.id] ?? PowerState.unknown,
+        detail: c.host.isNotEmpty ? c.host : (c.mac.isNotEmpty ? c.mac.toUpperCase() : null),
+        canShutdown: c.shutdownUrl.trim().isNotEmpty,
+      ),
+  ];
 
   void start() {
     if (configs.isEmpty) return;

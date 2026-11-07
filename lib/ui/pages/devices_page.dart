@@ -136,7 +136,10 @@ class _SwitchTile extends StatelessWidget {
           Text(device.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.subtitle),
           const SizedBox(height: 2),
           Text(
-            [room?.name ?? 'Maison', !device.available ? 'Indisponible' : (device.isOn ? 'Allumé' : 'Éteint')].join(' · '),
+            [
+              room?.name ?? 'Maison',
+              !device.available ? 'Indisponible' : (device.isOn ? 'Allumé' : 'Éteint'),
+            ].join(' · '),
             style: AppText.label,
           ),
         ],

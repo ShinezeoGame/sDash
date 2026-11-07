@@ -47,7 +47,8 @@ class _ThermostatDialState extends State<ThermostatDial> {
 
   double get _value => _drag ?? widget.target;
 
-  double _fraction(double v) => widget.max <= widget.min ? 0 : ((v - widget.min) / (widget.max - widget.min)).clamp(0.0, 1.0);
+  double _fraction(double v) =>
+      widget.max <= widget.min ? 0 : ((v - widget.min) / (widget.max - widget.min)).clamp(0.0, 1.0);
 
   double? _valueAt(Offset local, Size size) {
     final center = size.center(Offset.zero);
@@ -79,71 +80,76 @@ class _ThermostatDialState extends State<ThermostatDial> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final side = math.min(constraints.maxWidth, constraints.maxHeight);
-      final size = Size.square(side);
-      final interactive = widget.enabled && widget.onChanged != null;
-      final valueStyle = AppText.display.copyWith(fontSize: side * (widget.compact ? 0.22 : 0.21));
-      final status = !widget.enabled
-          ? 'Arrêt'
-          : widget.heating
-              ? 'Chauffe'
-              : 'Stable';
-      return Center(
-        child: SizedBox.fromSize(
-          size: size,
-          child: GestureDetector(
-            onPanStart: interactive ? (d) => _handle(d.localPosition, size) : null,
-            onPanUpdate: interactive ? (d) => _handle(d.localPosition, size) : null,
-            onPanEnd: interactive ? (_) => _finish() : null,
-            onPanCancel: interactive ? _finish : null,
-            child: CustomPaint(
-              painter: _DialPainter(
-                fraction: _fraction(_value),
-                currentFraction: widget.current == null ? null : _fraction(widget.current!),
-                enabled: widget.enabled,
-                heating: widget.heating,
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(widget.compact ? 'Consigne' : 'Consigne', style: AppText.label.copyWith(fontSize: side * 0.05)),
-                    SizedBox(height: side * 0.015),
-                    Text(
-                      widget.enabled ? formatTemp(_value) : '--',
-                      style: valueStyle.copyWith(color: widget.enabled ? Palette.cream : Palette.taupe),
-                    ),
-                    SizedBox(height: side * 0.025),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: widget.heating && widget.enabled ? Palette.ember : Palette.taupe,
-                            boxShadow: widget.heating && widget.enabled
-                                ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.8), blurRadius: 8)]
-                                : null,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = math.min(constraints.maxWidth, constraints.maxHeight);
+        final size = Size.square(side);
+        final interactive = widget.enabled && widget.onChanged != null;
+        final valueStyle = AppText.display.copyWith(fontSize: side * (widget.compact ? 0.22 : 0.21));
+        final status = !widget.enabled
+            ? 'Arrêt'
+            : widget.heating
+            ? 'Chauffe'
+            : 'Stable';
+        return Center(
+          child: SizedBox.fromSize(
+            size: size,
+            child: GestureDetector(
+              onPanStart: interactive ? (d) => _handle(d.localPosition, size) : null,
+              onPanUpdate: interactive ? (d) => _handle(d.localPosition, size) : null,
+              onPanEnd: interactive ? (_) => _finish() : null,
+              onPanCancel: interactive ? _finish : null,
+              child: CustomPaint(
+                painter: _DialPainter(
+                  fraction: _fraction(_value),
+                  currentFraction: widget.current == null ? null : _fraction(widget.current!),
+                  enabled: widget.enabled,
+                  heating: widget.heating,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Consigne', style: AppText.label.copyWith(fontSize: (side * 0.06).clamp(11.0, 14.0))),
+                      SizedBox(height: side * 0.015),
+                      Text(
+                        widget.enabled ? formatTemp(_value) : '--',
+                        style: valueStyle.copyWith(color: widget.enabled ? Palette.cream : Palette.taupe),
+                      ),
+                      SizedBox(height: side * 0.025),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: widget.heating && widget.enabled ? Palette.ember : Palette.taupe,
+                              boxShadow: widget.heating && widget.enabled
+                                  ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.8), blurRadius: 8)]
+                                  : null,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          widget.current != null ? '$status · ${formatTemp(widget.current)}' : status,
-                          style: AppText.label.copyWith(fontSize: side * 0.048, color: Palette.sand),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 6),
+                          Text(
+                            widget.current != null ? '$status · ${formatTemp(widget.current)}' : status,
+                            style: AppText.label.copyWith(
+                              fontSize: (side * 0.058).clamp(11.0, 14.0),
+                              color: Palette.sand,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -187,7 +193,9 @@ class _DialPainter extends CustomPainter {
         Paint()
           ..strokeWidth = major ? 2 : 1.3
           ..strokeCap = StrokeCap.round
-          ..color = active ? Palette.honey.withValues(alpha: major ? 0.85 : 0.55) : Colors.white.withValues(alpha: major ? 0.18 : 0.10),
+          ..color = active
+              ? Palette.honey.withValues(alpha: major ? 0.85 : 0.55)
+              : Colors.white.withValues(alpha: major ? 0.18 : 0.10),
       );
     }
 
@@ -243,7 +251,9 @@ class _DialPainter extends CustomPainter {
     final gradient = SweepGradient(
       startAngle: 0,
       endAngle: _sweep,
-      colors: enabled ? const [Palette.terracotta, Palette.cognac, Palette.amber, Palette.honey] : [Palette.dusk, Palette.taupe],
+      colors: enabled
+          ? const [Palette.terracotta, Palette.cognac, Palette.amber, Palette.honey]
+          : [Palette.dusk, Palette.taupe],
       transform: const GradientRotation(_start),
     ).createShader(arcRect);
 
@@ -294,14 +304,13 @@ class _DialPainter extends CustomPainter {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
     );
     canvas.drawCircle(knob, knobRadius, Paint()..color = enabled ? Palette.cream : Palette.sand);
-    canvas.drawCircle(
-      knob,
-      knobRadius * 0.42,
-      Paint()..color = enabled ? Palette.cognac : Palette.dusk,
-    );
+    canvas.drawCircle(knob, knobRadius * 0.42, Paint()..color = enabled ? Palette.cognac : Palette.dusk);
   }
 
   @override
   bool shouldRepaint(_DialPainter old) =>
-      old.fraction != fraction || old.currentFraction != currentFraction || old.enabled != enabled || old.heating != heating;
+      old.fraction != fraction ||
+      old.currentFraction != currentFraction ||
+      old.enabled != enabled ||
+      old.heating != heating;
 }

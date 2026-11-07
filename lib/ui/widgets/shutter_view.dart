@@ -49,29 +49,31 @@ class _ShutterViewState extends State<ShutterView> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final height = constraints.maxHeight;
-      final interactive = widget.onChangeEnd != null;
-      return GestureDetector(
-        onVerticalDragStart: interactive ? (d) => _update(d.localPosition, height) : null,
-        onVerticalDragUpdate: interactive ? (d) => _update(d.localPosition, height) : null,
-        onVerticalDragEnd: interactive ? (_) => _end() : null,
-        onVerticalDragCancel: interactive ? () => setState(() => _drag = null) : null,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(end: (_drag ?? widget.position).toDouble()),
-          duration: _drag != null ? const Duration(milliseconds: 60) : const Duration(milliseconds: 900),
-          curve: Curves.easeOutCubic,
-          builder: (context, value, _) => CustomPaint(
-            size: Size.infinite,
-            painter: _ShutterPainter(
-              position: value,
-              compact: widget.compact,
-              motion: _drag != null ? CoverMotion.idle : widget.motion,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = constraints.maxHeight;
+        final interactive = widget.onChangeEnd != null;
+        return GestureDetector(
+          onVerticalDragStart: interactive ? (d) => _update(d.localPosition, height) : null,
+          onVerticalDragUpdate: interactive ? (d) => _update(d.localPosition, height) : null,
+          onVerticalDragEnd: interactive ? (_) => _end() : null,
+          onVerticalDragCancel: interactive ? () => setState(() => _drag = null) : null,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: (_drag ?? widget.position).toDouble()),
+            duration: _drag != null ? const Duration(milliseconds: 60) : const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => CustomPaint(
+              size: Size.infinite,
+              painter: _ShutterPainter(
+                position: value,
+                compact: widget.compact,
+                motion: _drag != null ? CoverMotion.idle : widget.motion,
+              ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -198,7 +200,9 @@ class _ShutterPainter extends CustomPainter {
     canvas.drawRRect(box, Paint()..color = const Color(0xFF2A170C));
 
     if (motion != CoverMotion.idle) {
-      final icon = motion == CoverMotion.opening ? Icons.keyboard_double_arrow_up_rounded : Icons.keyboard_double_arrow_down_rounded;
+      final icon = motion == CoverMotion.opening
+          ? Icons.keyboard_double_arrow_up_rounded
+          : Icons.keyboard_double_arrow_down_rounded;
       final painter = TextPainter(
         text: TextSpan(
           text: String.fromCharCode(icon.codePoint),

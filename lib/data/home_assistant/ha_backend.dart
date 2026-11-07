@@ -12,12 +12,7 @@ import 'ha_mapper.dart';
 /// Connexion temps réel à Home Assistant via son API WebSocket
 /// (https://developers.home-assistant.io/docs/api/websocket).
 class HomeAssistantBackend implements HomeBackend {
-  HomeAssistantBackend({
-    required this.baseUrl,
-    required this.token,
-    this.energySensor = '',
-    this.computers = const [],
-  });
+  HomeAssistantBackend({required this.baseUrl, required this.token, this.energySensor = '', this.computers = const []});
 
   final String baseUrl;
   final String token;
@@ -244,10 +239,13 @@ class HomeAssistantBackend implements HomeBackend {
     final completer = Completer<dynamic>();
     _pending[id] = completer;
     _send({...payload, 'id': id});
-    return completer.future.timeout(timeout, onTimeout: () {
-      _pending.remove(id);
-      throw const BackendException('Home Assistant ne répond pas');
-    });
+    return completer.future.timeout(
+      timeout,
+      onTimeout: () {
+        _pending.remove(id);
+        throw const BackendException('Home Assistant ne répond pas');
+      },
+    );
   }
 
   void _scheduleEmit() {
@@ -257,14 +255,16 @@ class HomeAssistantBackend implements HomeBackend {
 
   void _emit() {
     if (_states.isClosed || !_ready) return;
-    _states.add(mapHomeAssistant(
-      states: _entities,
-      registry: _registry,
-      computers: computers,
-      energyWeek: _energyWeek,
-      energyUnit: _energyUnit,
-      brightnessMemory: _brightnessMemory,
-    ));
+    _states.add(
+      mapHomeAssistant(
+        states: _entities,
+        registry: _registry,
+        computers: computers,
+        energyWeek: _energyWeek,
+        energyUnit: _energyUnit,
+        brightnessMemory: _brightnessMemory,
+      ),
+    );
   }
 
   void _onClosed() {
@@ -349,10 +349,10 @@ class HomeAssistantBackend implements HomeBackend {
 
   @override
   Future<void> coverCommand(String id, CoverCommand command) => _service('cover', switch (command) {
-        CoverCommand.open => 'open_cover',
-        CoverCommand.close => 'close_cover',
-        CoverCommand.stop => 'stop_cover',
-      }, id);
+    CoverCommand.open => 'open_cover',
+    CoverCommand.close => 'close_cover',
+    CoverCommand.stop => 'stop_cover',
+  }, id);
 
   @override
   Future<void> setComputerPower(String id, bool on) async {

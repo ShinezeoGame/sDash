@@ -76,10 +76,12 @@ void main() {
 
     test('les réglages sont enregistrés et relus', () async {
       final store = SettingsStore();
-      await store.save(const AppSettings(
-        userName: 'Alex',
-        computers: [ComputerConfig(id: '1', name: 'PC', mac: 'AA:BB:CC:DD:EE:FF', host: '192.168.1.42')],
-      ));
+      await store.save(
+        const AppSettings(
+          userName: 'Alex',
+          computers: [ComputerConfig(id: '1', name: 'PC', mac: 'AA:BB:CC:DD:EE:FF', host: '192.168.1.42')],
+        ),
+      );
       final loaded = await store.load();
       expect(loaded.userName, 'Alex');
       expect(loaded.computers.single.mac, 'AA:BB:CC:DD:EE:FF');

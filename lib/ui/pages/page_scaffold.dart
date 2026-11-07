@@ -55,7 +55,10 @@ class DetailPage extends StatelessWidget {
     if (maxWidth != null) {
       list = Align(
         alignment: Alignment.topCenter,
-        child: ConstrainedBox(constraints: BoxConstraints(maxWidth: maxWidth!), child: list),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth!),
+          child: list,
+        ),
       );
     }
     return list;
@@ -64,13 +67,7 @@ class DetailPage extends StatelessWidget {
 
 /// Grille de tuiles de largeur égale, le nombre de colonnes s'adaptant à l'écran.
 class TileGrid extends StatelessWidget {
-  const TileGrid({
-    super.key,
-    required this.children,
-    this.minTileWidth = 260,
-    this.tileHeight,
-    this.gap = 18,
-  });
+  const TileGrid({super.key, required this.children, this.minTileWidth = 260, this.tileHeight, this.gap = 18});
 
   final List<Widget> children;
   final double minTileWidth;
@@ -79,16 +76,16 @@ class TileGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final columns = math.max(1, ((constraints.maxWidth + gap) / (minTileWidth + gap)).floor());
-      final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-      return Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: [
-          for (final child in children) SizedBox(width: width, height: tileHeight, child: child),
-        ],
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = math.max(1, ((constraints.maxWidth + gap) / (minTileWidth + gap)).floor());
+        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [for (final child in children) SizedBox(width: width, height: tileHeight, child: child)],
+        );
+      },
+    );
   }
 }

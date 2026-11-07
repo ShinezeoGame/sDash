@@ -59,13 +59,15 @@ class _SettingsPageState extends State<SettingsPage> {
       home.post('Renseignez l’adresse et le jeton de Home Assistant.', isError: true);
       return;
     }
-    await home.updateSettings(home.settings.copyWith(
-      userName: _name.text.trim(),
-      backend: _backend,
-      haUrl: _url.text.trim(),
-      haToken: _token.text.trim(),
-      energySensor: _energy.text.trim(),
-    ));
+    await home.updateSettings(
+      home.settings.copyWith(
+        userName: _name.text.trim(),
+        backend: _backend,
+        haUrl: _url.text.trim(),
+        haToken: _token.text.trim(),
+        energySensor: _energy.text.trim(),
+      ),
+    );
     home.post('Réglages enregistrés');
   }
 
@@ -110,7 +112,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final home = HomeScope.of(context);
     final settings = home.settings;
     final link = home.link;
-    final linkText = link.message ??
+    final linkText =
+        link.message ??
         switch (link.state) {
           LinkState.online => 'connecté',
           LinkState.connecting => 'connexion…',
@@ -210,7 +213,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(child: Text('${home.backendLabel} — $linkText', style: AppText.label)),
-                  PillButton(label: 'Reconnecter', icon: Icons.refresh_rounded, compact: true, onPressed: home.reconnect),
+                  PillButton(
+                    label: 'Reconnecter',
+                    icon: Icons.refresh_rounded,
+                    compact: true,
+                    onPressed: home.reconnect,
+                  ),
                 ],
               ),
             ],
@@ -248,13 +256,21 @@ class _SettingsPageState extends State<SettingsPage> {
                                   Text(
                                     c.usesHomeAssistant
                                         ? 'Home Assistant · ${c.haEntity}'
-                                        : [if (c.mac.isNotEmpty) c.mac.toUpperCase(), if (c.host.isNotEmpty) c.host].join(' · '),
+                                        : [
+                                            if (c.mac.isNotEmpty) c.mac.toUpperCase(),
+                                            if (c.host.isNotEmpty) c.host,
+                                          ].join(' · '),
                                     style: AppText.label,
                                   ),
                                 ],
                               ),
                             ),
-                            GlassIconButton(icon: Icons.edit_rounded, size: 40, tooltip: 'Modifier', onPressed: () => _editComputer(c)),
+                            GlassIconButton(
+                              icon: Icons.edit_rounded,
+                              size: 40,
+                              tooltip: 'Modifier',
+                              onPressed: () => _editComputer(c),
+                            ),
                             const SizedBox(width: 8),
                             GlassIconButton(
                               icon: Icons.delete_outline_rounded,
@@ -497,7 +513,9 @@ class _ComputerDialogState extends State<_ComputerDialog> {
                   ),
                   validator: (v) {
                     final e = (v ?? '').trim();
-                    return e.isNotEmpty && !RegExp(r'^[a-z_]+\.[a-z0-9_]+$').hasMatch(e) ? 'Format attendu : domaine.nom' : null;
+                    return e.isNotEmpty && !RegExp(r'^[a-z_]+\.[a-z0-9_]+$').hasMatch(e)
+                        ? 'Format attendu : domaine.nom'
+                        : null;
                   },
                 ),
               ],

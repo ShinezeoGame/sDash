@@ -25,10 +25,8 @@ class SDashApp extends StatelessWidget {
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         builder: (context, child) => ListenableBuilder(
           listenable: controller,
-          builder: (context, _) => GlassSettings(
-            reduced: controller.settings.reducedGlass,
-            child: child ?? const SizedBox.shrink(),
-          ),
+          builder: (context, _) =>
+              GlassSettings(reduced: controller.settings.reducedGlass, child: child ?? const SizedBox.shrink()),
         ),
         home: const Shell(),
       ),

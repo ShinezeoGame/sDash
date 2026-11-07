@@ -43,8 +43,8 @@ class LightsCard extends StatelessWidget {
             subtitle: state.lights.isEmpty
                 ? 'Aucune lumière'
                 : on == 0
-                    ? 'Tout est éteint'
-                    : '${plural(on, 'allumée')} sur ${state.lights.length}',
+                ? 'Tout est éteint'
+                : '${plural(on, 'allumée')} sur ${state.lights.length}',
             trailing: PillButton(
               label: 'Tout éteindre',
               icon: Icons.power_settings_new_rounded,
@@ -80,7 +80,9 @@ class LightsCard extends StatelessWidget {
                                     Text(room.name, style: AppText.subtitle.copyWith(fontSize: 16)),
                                     const SizedBox(height: 2),
                                     Text(
-                                      onCount == 0 ? 'Éteint' : '$onCount sur ${lights.length} allumée${onCount > 1 ? 's' : ''}',
+                                      onCount == 0
+                                          ? 'Éteint'
+                                          : '$onCount sur ${lights.length} allumée${onCount > 1 ? 's' : ''}',
                                       style: AppText.label,
                                     ),
                                   ],

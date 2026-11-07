@@ -7,7 +7,17 @@ import '../settings.dart';
 typedef Json = Map<String, dynamic>;
 
 /// Domaines Home Assistant exploités par l'application.
-const haRelevantDomains = {'light', 'climate', 'cover', 'switch', 'scene', 'script', 'weather', 'button', 'input_boolean'};
+const haRelevantDomains = {
+  'light',
+  'climate',
+  'cover',
+  'switch',
+  'scene',
+  'script',
+  'weather',
+  'button',
+  'input_boolean',
+};
 
 const _awayPresets = ['away', 'frost_protection', 'frost', 'hors_gel', 'hors-gel', 'antifreeze'];
 
@@ -121,18 +131,22 @@ HomeState mapHomeAssistant({
     switch (haDomain(id)) {
       case 'light':
         final modes = _strings(attrs['supported_color_modes']);
-        final dimmable = modes.isEmpty ? attrs.containsKey('brightness') : !(modes.length == 1 && modes.first == 'onoff');
+        final dimmable = modes.isEmpty
+            ? attrs.containsKey('brightness')
+            : !(modes.length == 1 && modes.first == 'onoff');
         final raw = _num(attrs['brightness']);
         if (raw != null) memory[id] = (raw / 255).clamp(0.01, 1.0);
-        lights.add(LightDevice(
-          id: id,
-          name: name,
-          roomId: roomId,
-          isOn: state == 'on',
-          brightness: memory[id] ?? 1.0,
-          dimmable: dimmable,
-          available: available,
-        ));
+        lights.add(
+          LightDevice(
+            id: id,
+            name: name,
+            roomId: roomId,
+            isOn: state == 'on',
+            brightness: memory[id] ?? 1.0,
+            dimmable: dimmable,
+            available: available,
+          ),
+        );
       case 'climate':
         final presets = _strings(attrs['preset_modes']);
         final hvacModes = _strings(attrs['hvac_modes']);
@@ -140,52 +154,58 @@ HomeState mapHomeAssistant({
         final mode = state == 'off'
             ? ClimateMode.off
             : preset == 'eco'
-                ? ClimateMode.eco
-                : (_awayPresets.contains(preset) ? ClimateMode.away : ClimateMode.comfort);
-        climates.add(ClimateDevice(
-          id: id,
-          name: name,
-          roomId: roomId,
-          currentTemp: _num(attrs['current_temperature']),
-          targetTemp: _num(attrs['temperature']) ?? _num(attrs['target_temp_low']) ?? 19,
-          minTemp: _num(attrs['min_temp']) ?? 7,
-          maxTemp: _num(attrs['max_temp']) ?? 30,
-          step: _num(attrs['target_temp_step']) ?? 0.5,
-          mode: mode,
-          isHeating: attrs['hvac_action'] == 'heating',
-          humidity: _num(attrs['current_humidity']),
-          supportedModes: {
-            ClimateMode.comfort,
-            if (presets.contains('eco')) ClimateMode.eco,
-            if (presets.any(_awayPresets.contains)) ClimateMode.away,
-            if (hvacModes.contains('off')) ClimateMode.off,
-          },
-          available: available,
-        ));
+            ? ClimateMode.eco
+            : (_awayPresets.contains(preset) ? ClimateMode.away : ClimateMode.comfort);
+        climates.add(
+          ClimateDevice(
+            id: id,
+            name: name,
+            roomId: roomId,
+            currentTemp: _num(attrs['current_temperature']),
+            targetTemp: _num(attrs['temperature']) ?? _num(attrs['target_temp_low']) ?? 19,
+            minTemp: _num(attrs['min_temp']) ?? 7,
+            maxTemp: _num(attrs['max_temp']) ?? 30,
+            step: _num(attrs['target_temp_step']) ?? 0.5,
+            mode: mode,
+            isHeating: attrs['hvac_action'] == 'heating',
+            humidity: _num(attrs['current_humidity']),
+            supportedModes: {
+              ClimateMode.comfort,
+              if (presets.contains('eco')) ClimateMode.eco,
+              if (presets.any(_awayPresets.contains)) ClimateMode.away,
+              if (hvacModes.contains('off')) ClimateMode.off,
+            },
+            available: available,
+          ),
+        );
       case 'cover':
         final pos = _num(attrs['current_position']);
-        covers.add(CoverDevice(
-          id: id,
-          name: name,
-          roomId: roomId,
-          position: pos?.round() ?? (state == 'open' || state == 'opening' ? 100 : 0),
-          motion: switch (state) {
-            'opening' => CoverMotion.opening,
-            'closing' => CoverMotion.closing,
-            _ => CoverMotion.idle,
-          },
-          supportsPosition: pos != null,
-          available: available,
-        ));
+        covers.add(
+          CoverDevice(
+            id: id,
+            name: name,
+            roomId: roomId,
+            position: pos?.round() ?? (state == 'open' || state == 'opening' ? 100 : 0),
+            motion: switch (state) {
+              'opening' => CoverMotion.opening,
+              'closing' => CoverMotion.closing,
+              _ => CoverMotion.idle,
+            },
+            supportsPosition: pos != null,
+            available: available,
+          ),
+        );
       case 'switch':
-        switches.add(SwitchDevice(
-          id: id,
-          name: name,
-          roomId: roomId,
-          isOn: state == 'on',
-          kind: guessSwitchKind(name),
-          available: available,
-        ));
+        switches.add(
+          SwitchDevice(
+            id: id,
+            name: name,
+            roomId: roomId,
+            isOn: state == 'on',
+            kind: guessSwitchKind(name),
+            available: available,
+          ),
+        );
       case 'scene' || 'script':
         scenes.add(SceneItem(id: id, name: name, kind: guessSceneKind(name)));
       case 'weather':
@@ -242,7 +262,9 @@ List<(String, Json)> climateModeCalls(Json? entityState, ClimateMode mode) {
   final presets = _strings(attrs['preset_modes']);
   final hvacModes = _strings(attrs['hvac_modes']);
   if (mode == ClimateMode.off) {
-    return [('set_hvac_mode', {'hvac_mode': 'off'})];
+    return [
+      ('set_hvac_mode', {'hvac_mode': 'off'}),
+    ];
   }
   final calls = <(String, Json)>[];
   if (entityState?['state'] == 'off') {
@@ -252,7 +274,9 @@ List<(String, Json)> climateModeCalls(Json? entityState, ClimateMode mode) {
   String? preset;
   switch (mode) {
     case ClimateMode.comfort:
-      preset = presets.contains('comfort') ? 'comfort' : (presets.contains('home') ? 'home' : (presets.contains('none') ? 'none' : null));
+      preset = presets.contains('comfort')
+          ? 'comfort'
+          : (presets.contains('home') ? 'home' : (presets.contains('none') ? 'none' : null));
     case ClimateMode.eco:
       preset = presets.contains('eco') ? 'eco' : null;
     case ClimateMode.away:

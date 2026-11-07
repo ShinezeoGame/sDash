@@ -26,41 +26,56 @@ abstract final class LeatherGrain {
 
   static Future<void> ensureLoaded() async {
     if (image != null) return;
-    const size = 160;
+    const size = 128;
     final completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(_generate(size), size, size, ui.PixelFormat.rgba8888, completer.complete);
+    ui.decodeImageFromPixels(generatePixels(size), size, size, ui.PixelFormat.rgba8888, completer.complete);
     image = await completer.future;
   }
 
-  /// Bruit de Worley : les « plis » entre cellules sont assombris,
-  /// ce qui imite le grain pleine fleur d'un cuir.
-  static Uint8List _generate(int size) {
-    final random = math.Random(7);
-    const cells = 70;
-    final points = List.generate(cells, (_) => Offset(random.nextDouble() * size, random.nextDouble() * size));
+  /// Bruit cellulaire tuilable sur une grille légèrement déformée : les « plis »
+  /// entre cellules sont assombris, comme le grain pleine fleur d'un cuir.
+  static Uint8List generatePixels(int size) {
+    final random = math.Random(11);
+    const grid = 18;
+    final step = size / grid;
+    final points = List.generate(
+      grid * grid,
+      (i) => Offset(
+        (i % grid + 0.5 + (random.nextDouble() - 0.5) * 0.85) * step,
+        (i ~/ grid + 0.5 + (random.nextDouble() - 0.5) * 0.85) * step,
+      ),
+    );
     final pixels = Uint8List(size * size * 4);
     for (var y = 0; y < size; y++) {
       for (var x = 0; x < size; x++) {
+        final gx = (x / step).floor();
+        final gy = (y / step).floor();
         var f1 = double.infinity;
         var f2 = double.infinity;
-        for (final p in points) {
-          var dx = (p.dx - x).abs();
-          var dy = (p.dy - y).abs();
-          if (dx > size / 2) dx = size - dx;
-          if (dy > size / 2) dy = size - dy;
-          final d = dx * dx + dy * dy;
-          if (d < f1) {
-            f2 = f1;
-            f1 = d;
-          } else if (d < f2) {
-            f2 = d;
+        for (var j = -2; j <= 2; j++) {
+          for (var i = -2; i <= 2; i++) {
+            final cx = gx + i;
+            final cy = gy + j;
+            final wx = (cx % grid + grid) % grid;
+            final wy = (cy % grid + grid) % grid;
+            final p = points[wy * grid + wx];
+            final px = p.dx + (cx - wx) * step;
+            final py = p.dy + (cy - wy) * step;
+            final d = (px - x) * (px - x) + (py - y) * (py - y);
+            if (d < f1) {
+              f2 = f1;
+              f1 = d;
+            } else if (d < f2) {
+              f2 = d;
+            }
           }
         }
         final edge = math.sqrt(f2) - math.sqrt(f1); // 0 sur les plis
-        final crease = (1 - (edge / 3.2)).clamp(0.0, 1.0);
-        final speckle = random.nextDouble();
+        final crease = 1 - (edge / 1.6).clamp(0.0, 1.0);
+        // Légère variation à grande échelle (périodique pour rester tuilable).
+        final wave = 0.8 + 0.2 * math.sin(2 * math.pi * x / size * 2) * math.cos(2 * math.pi * y / size * 3);
+        final alpha = ((crease * crease * 30 + random.nextDouble() * 5) * wave).round().clamp(0, 255);
         // Noir pur : valeurs identiques en alpha prémultiplié ou non.
-        final alpha = (crease * crease * 34 + speckle * 9).round().clamp(0, 255);
         pixels[(y * size + x) * 4 + 3] = alpha;
       }
     }
@@ -201,7 +216,7 @@ class GlassPainter extends CustomPainter {
       );
     }
 
-    if (grain) LeatherGrain.paint(canvas, rect, clip: rrect);
+    if (grain) LeatherGrain.paint(canvas, rect, opacity: 0.6, clip: rrect);
 
     // Reflet supérieur.
     canvas.drawRRect(
@@ -210,7 +225,10 @@ class GlassPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.center,
-          colors: [Colors.white.withValues(alpha: 0.07 * strength), Colors.white.withValues(alpha: 0)],
+          colors: [
+            Colors.white.withValues(alpha: 0.07 * strength),
+            Colors.white.withValues(alpha: 0),
+          ],
         ).createShader(rect),
     );
 

@@ -4,8 +4,11 @@ import 'package:sdash/data/home_assistant/ha_mapper.dart';
 import 'package:sdash/data/settings.dart';
 import 'package:sdash/models/home.dart';
 
-Json entity(String id, String state, [Json attributes = const {}]) =>
-    {'entity_id': id, 'state': state, 'attributes': attributes};
+Json entity(String id, String state, [Json attributes = const {}]) => {
+  'entity_id': id,
+  'state': state,
+  'attributes': attributes,
+};
 
 void main() {
   final registry = HaRegistry.fromLists(
@@ -99,13 +102,24 @@ void main() {
       'preset_modes': ['comfort', 'eco', 'frost_protection'],
     });
     // Les records comparent leurs Map par identité : on les convertit en listes.
-    List<List<Object>> calls(ClimateMode mode) => [for (final (s, d) in climateModeCalls(off, mode)) [s, d]];
+    List<List<Object>> calls(ClimateMode mode) => [
+      for (final (s, d) in climateModeCalls(off, mode)) [s, d],
+    ];
     expect(calls(ClimateMode.away), [
-      ['set_hvac_mode', {'hvac_mode': 'heat'}],
-      ['set_preset_mode', {'preset_mode': 'frost_protection'}],
+      [
+        'set_hvac_mode',
+        {'hvac_mode': 'heat'},
+      ],
+      [
+        'set_preset_mode',
+        {'preset_mode': 'frost_protection'},
+      ],
     ]);
     expect(calls(ClimateMode.off), [
-      ['set_hvac_mode', {'hvac_mode': 'off'}],
+      [
+        'set_hvac_mode',
+        {'hvac_mode': 'off'},
+      ],
     ]);
   });
 

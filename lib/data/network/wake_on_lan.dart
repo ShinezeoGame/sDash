@@ -11,9 +11,7 @@ Uint8List parseMac(String mac) {
   if (!isValidMac(mac) || hex.length != 12) {
     throw FormatException('Adresse MAC invalide : $mac');
   }
-  return Uint8List.fromList([
-    for (var i = 0; i < 12; i += 2) int.parse(hex.substring(i, i + 2), radix: 16),
-  ]);
+  return Uint8List.fromList([for (var i = 0; i < 12; i += 2) int.parse(hex.substring(i, i + 2), radix: 16)]);
 }
 
 /// Construit le « paquet magique » Wake-on-LAN : 6 × 0xFF puis 16 fois la MAC.

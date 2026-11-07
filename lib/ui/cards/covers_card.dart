@@ -25,7 +25,9 @@ class CoversCard extends StatelessWidget {
         children: [
           CardHeader(
             title: 'Volets',
-            subtitle: covers.isEmpty ? 'Aucun volet' : '${state.coversOpen} ouvert${state.coversOpen > 1 ? 's' : ''} sur ${covers.length}',
+            subtitle: covers.isEmpty
+                ? 'Aucun volet'
+                : '${state.coversOpen} ouvert${state.coversOpen > 1 ? 's' : ''} sur ${covers.length}',
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -49,41 +51,52 @@ class CoversCard extends StatelessWidget {
           Expanded(
             child: covers.isEmpty
                 ? const EmptyHint(icon: Icons.blinds_rounded, text: 'Aucun volet détecté')
-                : ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: covers.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 14),
-                    itemBuilder: (context, i) {
-                      final c = covers[i];
-                      return SizedBox(
-                        width: 82,
-                        child: Column(
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      const gap = 14.0;
+                      Widget tile(CoverDevice c) => Column(
+                        children: [
+                          Expanded(
+                            child: ShutterView(
+                              compact: true,
+                              position: c.position,
+                              motion: c.motion,
+                              onChangeEnd: c.available ? (p) => home.setCoverPosition(c.id, p) : null,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () => ShellNav.go(context, AppSection.covers),
+                            child: Column(
+                              children: [
+                                Text(
+                                  state.room(c.roomId)?.name ?? c.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppText.label.copyWith(color: Palette.cream),
+                                ),
+                                Text('${c.position} %', style: AppText.caption.copyWith(color: Palette.taupe)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                      final fitted = (constraints.maxWidth - gap * (covers.length - 1)) / covers.length;
+                      if (fitted >= 58) {
+                        return Row(
                           children: [
-                            Expanded(
-                              child: ShutterView(
-                                compact: true,
-                                position: c.position,
-                                motion: c.motion,
-                                onChangeEnd: c.available ? (p) => home.setCoverPosition(c.id, p) : null,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () => ShellNav.go(context, AppSection.covers),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    state.room(c.roomId)?.name ?? c.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: AppText.label.copyWith(color: Palette.cream),
-                                  ),
-                                  Text('${c.position} %', style: AppText.caption.copyWith(color: Palette.taupe)),
-                                ],
-                              ),
-                            ),
+                            for (var i = 0; i < covers.length; i++) ...[
+                              if (i > 0) const SizedBox(width: gap),
+                              Expanded(child: tile(covers[i])),
+                            ],
                           ],
-                        ),
+                        );
+                      }
+                      return ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: covers.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: gap),
+                        itemBuilder: (context, i) => SizedBox(width: 82, child: tile(covers[i])),
                       );
                     },
                   ),

@@ -34,12 +34,11 @@ class CoversPage extends StatelessWidget {
         ),
       ],
       children: [
-        if (state.covers.isEmpty) const GlassCard(child: EmptyHint(icon: Icons.blinds_rounded, text: 'Aucun volet détecté')),
-        TileGrid(
-          minTileWidth: 240,
-          tileHeight: 380,
-          children: [for (final c in state.covers) CoverTile(cover: c)],
-        ),
+        if (state.covers.isEmpty)
+          const GlassCard(
+            child: EmptyHint(icon: Icons.blinds_rounded, text: 'Aucun volet détecté'),
+          ),
+        TileGrid(minTileWidth: 240, tileHeight: 380, children: [for (final c in state.covers) CoverTile(cover: c)]),
       ],
     );
   }
@@ -57,11 +56,12 @@ class CoverTile extends StatelessWidget {
     final motion = switch (cover.motion) {
       CoverMotion.opening => 'Ouverture…',
       CoverMotion.closing => 'Fermeture…',
-      CoverMotion.idle => cover.position == 0
-          ? 'Fermé'
-          : cover.position == 100
-              ? 'Ouvert'
-              : 'Ouvert à ${cover.position} %',
+      CoverMotion.idle =>
+        cover.position == 0
+            ? 'Fermé'
+            : cover.position == 100
+            ? 'Ouvert'
+            : 'Ouvert à ${cover.position} %',
     };
     return GlassCard(
       padding: const EdgeInsets.all(18),

@@ -11,7 +11,8 @@ const _probePorts = [3389, 445, 22, 139, 80, 5900];
 /// Envoie le paquet magique en diffusion UDP sur le réseau local.
 Future<void> sendMagicPacket(String mac, {String broadcast = '255.255.255.255', int port = 9}) async {
   final packet = buildMagicPacket(mac);
-  final target = InternetAddress.tryParse(broadcast.trim().isEmpty ? '255.255.255.255' : broadcast.trim()) ??
+  final target =
+      InternetAddress.tryParse(broadcast.trim().isEmpty ? '255.255.255.255' : broadcast.trim()) ??
       InternetAddress('255.255.255.255');
   final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
   try {

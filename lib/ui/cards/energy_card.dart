@@ -37,7 +37,9 @@ class EnergyCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Expanded(child: WeekBars(values: week, unit: state.energyUnit)),
+            Expanded(
+              child: WeekBars(values: week, unit: state.energyUnit),
+            ),
           ],
         ),
       );
@@ -69,7 +71,11 @@ class EnergyCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: Row(
                           children: [
-                            Icon(room != null ? roomIcon(room.kind) : Icons.home_rounded, color: Palette.honey, size: 22),
+                            Icon(
+                              room != null ? roomIcon(room.kind) : Icons.home_rounded,
+                              color: Palette.honey,
+                              size: 22,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(child: Text(room?.name ?? name, style: AppText.subtitle.copyWith(fontSize: 16))),
                             if (humidity != null) ...[

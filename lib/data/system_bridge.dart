@@ -18,7 +18,6 @@ class SystemBridge {
   }
 
   /// Plein écran immersif (barres système masquées, réapparaissent d'un glissement).
-  static Future<void> setImmersive(bool enabled) => SystemChrome.setEnabledSystemUIMode(
-        enabled ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge,
-      );
+  static Future<void> setImmersive(bool enabled) =>
+      SystemChrome.setEnabledSystemUIMode(enabled ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge);
 }

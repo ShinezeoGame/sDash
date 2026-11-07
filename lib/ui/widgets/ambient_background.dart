@@ -38,12 +38,12 @@ class _AmbientPainter extends CustomPainter {
   const _AmbientPainter();
 
   static const _glows = [
-    _Glow(0.10, 0.02, 0.48, Palette.cognac, 0.60),
-    _Glow(0.58, 0.40, 0.30, Palette.terracotta, 0.34),
-    _Glow(0.97, 0.06, 0.30, Palette.amber, 0.28),
-    _Glow(0.28, 1.02, 0.42, Palette.saddle, 0.62),
-    _Glow(0.90, 0.96, 0.36, Palette.honey, 0.16),
-    _Glow(0.45, 0.70, 0.22, Palette.ember, 0.10),
+    _Glow(0.10, 0.00, 0.50, Palette.cognac, 0.72),
+    _Glow(0.55, 0.36, 0.30, Palette.terracotta, 0.42),
+    _Glow(0.97, 0.04, 0.32, Palette.amber, 0.32),
+    _Glow(0.26, 1.02, 0.44, Palette.saddle, 0.70),
+    _Glow(0.90, 0.98, 0.38, Palette.honey, 0.20),
+    _Glow(0.42, 0.72, 0.24, Palette.ember, 0.14),
   ];
 
   @override
@@ -79,7 +79,7 @@ class _AmbientPainter extends CustomPainter {
       );
     }
 
-    LeatherGrain.paint(canvas, rect, opacity: 0.9);
+    LeatherGrain.paint(canvas, rect, opacity: 0.8);
 
     // Vignettage pour concentrer la lumière au centre.
     canvas.drawRect(

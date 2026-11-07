@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brun « espresso » du fond de l'application, pour éviter tout flash blanc au démarrage. -->
+    <color name="sdash_background">#FF160E09</color>
+</resources>

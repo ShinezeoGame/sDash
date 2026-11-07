@@ -33,90 +33,95 @@ class _WeekBarsState extends State<WeekBars> {
     final values = widget.values;
     final today = widget.today ?? DateTime.now();
     final maxValue = values.fold<double>(0, math.max);
-    return LayoutBuilder(builder: (context, constraints) {
-      const labelHeight = 26.0;
-      const bubbleHeight = 32.0;
-      final barArea = math.max(20.0, constraints.maxHeight - labelHeight - bubbleHeight);
-      final columnWidth = constraints.maxWidth / values.length;
-      final barWidth = math.min(38.0, columnWidth * 0.66);
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          for (var i = 0; i < values.length; i++)
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => setState(() => _selected = i),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    SizedBox(
-                      height: bubbleHeight,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: i == _selected ? 1 : 0,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Palette.honey,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [BoxShadow(color: Palette.honey.withValues(alpha: 0.4), blurRadius: 12)],
-                            ),
-                            child: Text(
-                              '${formatNumber(values[i])} ${widget.unit}',
-                              style: AppText.label.copyWith(color: Palette.onWarm, fontWeight: FontWeight.w600),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const labelHeight = 26.0;
+        const bubbleHeight = 32.0;
+        final barArea = math.max(20.0, constraints.maxHeight - labelHeight - bubbleHeight);
+        final columnWidth = constraints.maxWidth / values.length;
+        final barWidth = math.min(38.0, columnWidth * 0.66);
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            for (var i = 0; i < values.length; i++)
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _selected = i),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      SizedBox(
+                        height: bubbleHeight,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: i == _selected ? 1 : 0,
+                          child: OverflowBox(
+                            maxWidth: 160,
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Palette.honey,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [BoxShadow(color: Palette.honey.withValues(alpha: 0.4), blurRadius: 12)],
+                              ),
+                              child: Text(
+                                '${formatNumber(values[i])} ${widget.unit}',
+                                style: AppText.label.copyWith(color: Palette.onWarm, fontWeight: FontWeight.w600),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(end: maxValue <= 0 ? 0 : values[i] / maxValue),
-                      duration: const Duration(milliseconds: 700),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, t, _) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        width: barWidth,
-                        height: math.max(barWidth * 0.9, barArea * t),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(barWidth / 2),
-                          gradient: i == _selected
-                              ? const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [Palette.cream, Palette.honey],
-                                )
-                              : LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [Colors.white.withValues(alpha: 0.14), Colors.white.withValues(alpha: 0.04)],
-                                ),
-                          border: Border.all(color: Colors.white.withValues(alpha: i == _selected ? 0.5 : 0.10)),
-                          boxShadow: i == _selected
-                              ? [BoxShadow(color: Palette.honey.withValues(alpha: 0.35), blurRadius: 18)]
-                              : null,
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(end: maxValue <= 0 ? 0 : values[i] / maxValue),
+                        duration: const Duration(milliseconds: 700),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, t, _) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: barWidth,
+                          height: math.max(barWidth * 0.9, barArea * t),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(barWidth / 2),
+                            gradient: i == _selected
+                                ? const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [Palette.cream, Palette.honey],
+                                  )
+                                : LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.white.withValues(alpha: 0.14),
+                                      Colors.white.withValues(alpha: 0.04),
+                                    ],
+                                  ),
+                            border: Border.all(color: Colors.white.withValues(alpha: i == _selected ? 0.5 : 0.10)),
+                            boxShadow: i == _selected
+                                ? [BoxShadow(color: Palette.honey.withValues(alpha: 0.35), blurRadius: 18)]
+                                : null,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: labelHeight,
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Text(
-                          weekdayShort(today.subtract(Duration(days: values.length - 1 - i)).weekday),
-                          style: AppText.label.copyWith(color: i == _selected ? Palette.cream : Palette.taupe),
+                      SizedBox(
+                        height: labelHeight,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Text(
+                            weekdayShort(today.subtract(Duration(days: values.length - 1 - i)).weekday),
+                            style: AppText.label.copyWith(color: i == _selected ? Palette.cream : Palette.taupe),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }

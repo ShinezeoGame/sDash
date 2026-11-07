@@ -158,7 +158,11 @@ class EmptyHint extends StatelessWidget {
           children: [
             Icon(icon, size: 34, color: Palette.taupe),
             const SizedBox(height: 10),
-            Text(text, textAlign: TextAlign.center, style: AppText.body.copyWith(color: Palette.taupe)),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: AppText.body.copyWith(color: Palette.taupe),
+            ),
             if (action != null) ...[const SizedBox(height: 14), action!],
           ],
         ),

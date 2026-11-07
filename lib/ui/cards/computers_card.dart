@@ -10,11 +10,11 @@ import '../widgets/controls.dart';
 import '../widgets/glass.dart';
 
 Color powerColor(PowerState state) => switch (state) {
-      PowerState.on => Palette.sage,
-      PowerState.starting || PowerState.stopping => Palette.amber,
-      PowerState.off => Palette.taupe,
-      PowerState.unknown => Palette.dusk,
-    };
+  PowerState.on => Palette.sage,
+  PowerState.starting || PowerState.stopping => Palette.amber,
+  PowerState.off => Palette.taupe,
+  PowerState.unknown => Palette.dusk,
+};
 
 /// Allume ou éteint un ordinateur, avec confirmation avant l'extinction.
 Future<void> toggleComputer(BuildContext context, HomeController home, ComputerDevice pc) async {
@@ -91,7 +91,9 @@ class ComputersCard extends StatelessWidget {
         children: [
           CardHeader(
             title: 'Ordinateurs',
-            subtitle: computers.isEmpty ? 'Réveil à distance' : '$onCount allumé${onCount > 1 ? 's' : ''} sur ${computers.length}',
+            subtitle: computers.isEmpty
+                ? 'Réveil à distance'
+                : '$onCount allumé${onCount > 1 ? 's' : ''} sur ${computers.length}',
           ),
           const SizedBox(height: 10),
           Expanded(
@@ -152,11 +154,7 @@ class ComputersCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            PowerButton(
-                              state: pc.state,
-                              size: 46,
-                              onPressed: () => toggleComputer(context, home, pc),
-                            ),
+                            PowerButton(state: pc.state, size: 46, onPressed: () => toggleComputer(context, home, pc)),
                           ],
                         ),
                       );
