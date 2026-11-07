@@ -8,7 +8,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 
 /// Regroupe les lumières par pièce (les lumières sans pièce vont dans « Autres »).
 List<(Room, List<LightDevice>)> lightsByRoom(HomeState state) {
@@ -34,7 +34,7 @@ class LightsCard extends StatelessWidget {
     final groups = lightsByRoom(state);
     final on = state.lightsOn;
 
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

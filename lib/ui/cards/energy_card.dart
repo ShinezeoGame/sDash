@@ -5,7 +5,7 @@ import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import '../widgets/week_bars.dart';
 
 /// Consommation de la semaine ; à défaut, relevé des températures par pièce.
@@ -19,7 +19,7 @@ class EnergyCard extends StatelessWidget {
 
     if (week != null && week.isNotEmpty) {
       final total = week.fold<double>(0, (a, b) => a + b);
-      return GlassCard(
+      return SurfaceCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -49,7 +49,7 @@ class EnergyCard extends StatelessWidget {
       for (final c in state.climates)
         if (c.currentTemp != null) (state.room(c.roomId), c.name, c.currentTemp!, c.humidity),
     ];
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

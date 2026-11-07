@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sdash/app.dart';
 import 'package:sdash/data/demo_backend.dart';
+import 'package:sdash/data/settings.dart';
 import 'package:sdash/state/home_controller.dart';
 import 'package:sdash/ui/navigation.dart';
 import 'package:sdash/ui/pages/climate_page.dart';
@@ -72,6 +73,19 @@ void main() {
       await tearDownApp(tester, controller);
     });
   }
+
+  testWidgets('style verre : toutes les pages s’affichent sans débordement', (tester) async {
+    SharedPreferences.setMockInitialValues({'sdash.settings': '{"style":"glass"}'});
+    final controller = await pumpApp(tester, const Size(1280, 800));
+    expect(controller.settings.style, AppStyle.glass);
+    for (final section in AppSection.values) {
+      await tester.tap(find.byKey(ValueKey('nav-${section.name}')));
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pump(const Duration(milliseconds: 450));
+      expect(tester.takeException(), isNull, reason: 'page ${section.label}');
+    }
+    await tearDownApp(tester, controller);
+  });
 
   testWidgets('un appui sur une tuile de la page Lumières allume la lampe', (tester) async {
     final controller = await pumpApp(tester, const Size(1280, 800));

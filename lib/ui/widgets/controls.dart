@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme.dart';
-import 'glass.dart';
+import '../look.dart';
+import 'surface.dart';
 
 /// Interrupteur lumineux : rail ambré qui « s'allume » quand il est activé.
 class GlowToggle extends StatelessWidget {
@@ -14,6 +15,35 @@ class GlowToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final look = AppLook.of(context);
+    final BoxDecoration track;
+    if (value) {
+      track = look.active(radius: 20, glow: 0.8);
+    } else if (look.leather) {
+      track = BoxDecoration(borderRadius: BorderRadius.circular(20));
+    } else {
+      track = BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withValues(alpha: 0.09),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      );
+    }
+    // Style cuir : bouton en laiton, comme un rivet de maroquinerie.
+    final thumb = look.leather
+        ? BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: Palette.brass,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.55), blurRadius: 4, offset: const Offset(0, 2)),
+            ],
+          )
+        : BoxDecoration(
+            shape: BoxShape.circle,
+            color: value ? Palette.cream : Palette.taupe,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 2)),
+            ],
+          );
     return Semantics(
       toggled: value,
       enabled: enabled,
@@ -29,37 +59,20 @@ class GlowToggle extends StatelessWidget {
           padding: const EdgeInsets.all(4),
           child: Opacity(
             opacity: enabled ? 1 : 0.4,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 240),
-              curve: Curves.easeOutCubic,
-              width: 54,
-              height: 32,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: value ? Palette.warm : null,
-                color: value ? null : Colors.white.withValues(alpha: 0.09),
-                border: Border.all(
-                  color: value ? Colors.white.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.12),
-                ),
-                boxShadow: value
-                    ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.45), blurRadius: 16, spreadRadius: -2)]
-                    : const [],
-              ),
-              child: AnimatedAlign(
+            child: CustomPaint(
+              painter: !value && look.leather ? look.surface(radius: 16, relief: Relief.sunken, grain: false) : null,
+              child: AnimatedContainer(
                 duration: const Duration(milliseconds: 240),
                 curve: Curves.easeOutCubic,
-                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: value ? Palette.cream : Palette.taupe,
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 2)),
-                    ],
-                  ),
+                width: 54,
+                height: 32,
+                padding: const EdgeInsets.all(4),
+                decoration: track,
+                child: AnimatedAlign(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(width: 22, height: 22, decoration: thumb),
                 ),
               ),
             ),
@@ -124,7 +137,7 @@ class _WarmSliderState extends State<WarmSlider> {
         final h = widget.height;
         final fill = h + (_value * (width - h));
         final active = widget.enabled;
-        final reduced = GlassSettings.reducedOf(context);
+        final look = AppLook.of(context);
         return Opacity(
           opacity: active ? 1 : 0.45,
           child: GestureDetector(
@@ -145,13 +158,15 @@ class _WarmSliderState extends State<WarmSlider> {
                 children: [
                   Positioned.fill(
                     child: CustomPaint(
-                      painter: GlassPainter(radius: h / 2, reduced: reduced, grain: false, strength: 0.6),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(h / 2),
-                        ),
-                      ),
+                      painter: look.surface(radius: h / 2, relief: Relief.sunken, grain: look.leather),
+                      child: look.leather
+                          ? null
+                          : DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.16),
+                                borderRadius: BorderRadius.circular(h / 2),
+                              ),
+                            ),
                     ),
                   ),
                   AnimatedContainer(
@@ -161,11 +176,22 @@ class _WarmSliderState extends State<WarmSlider> {
                     height: h,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(h / 2),
-                      gradient: const LinearGradient(colors: [Palette.cognac, Palette.amber, Palette.honey]),
+                      // Style cuir : sangle de cuir fauve ; style verre : dégradé lumineux.
+                      gradient: look.leather
+                          ? const LinearGradient(colors: [Color(0xFF9A5A2A), Color(0xFFC88A4E), Color(0xFFE6B27A)])
+                          : const LinearGradient(colors: [Palette.cognac, Palette.amber, Palette.honey]),
+                      border: look.leather ? Border.all(color: const Color(0xFFFFE4BE).withValues(alpha: 0.35)) : null,
                       boxShadow: [
-                        BoxShadow(color: Palette.ember.withValues(alpha: 0.30), blurRadius: 14, spreadRadius: -4),
+                        look.leather
+                            ? BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
+                              )
+                            : BoxShadow(color: Palette.ember.withValues(alpha: 0.30), blurRadius: 14, spreadRadius: -4),
                       ],
                     ),
+                    foregroundDecoration: look.leather ? const _StrapStitchDecoration() : null,
                     alignment: Alignment.centerLeft,
                     padding: EdgeInsets.only(left: h * 0.42),
                     child: fill > h * 2.2
@@ -210,9 +236,40 @@ class _WarmSliderState extends State<WarmSlider> {
   }
 }
 
-/// Bouton rond en verre (icône), avec un état actif lumineux.
-class GlassIconButton extends StatelessWidget {
-  const GlassIconButton({
+/// Surpiqûre le long de la sangle d'un curseur (style cuir).
+class _StrapStitchDecoration extends Decoration {
+  const _StrapStitchDecoration();
+
+  @override
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) => _StrapStitchPainter();
+}
+
+class _StrapStitchPainter extends BoxPainter {
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final size = configuration.size;
+    if (size == null || size.width < size.height * 1.4) return;
+    final inset = size.height * 0.2;
+    final rrect = RRect.fromRectAndRadius((offset & size).deflate(inset), Radius.circular(size.height / 2 - inset));
+    final path = Path()..addRRect(rrect);
+    final thread = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFFFFF0D8).withValues(alpha: 0.55);
+    for (final metric in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(metric.extractPath(d, d + 4.5), thread);
+        d += 8;
+      }
+    }
+  }
+}
+
+/// Bouton rond (icône) : cuir embossé ou verre, avec un état actif.
+class SurfaceIconButton extends StatelessWidget {
+  const SurfaceIconButton({
     super.key,
     required this.icon,
     required this.onPressed,
@@ -231,7 +288,7 @@ class GlassIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reduced = GlassSettings.reducedOf(context);
+    final look = AppLook.of(context);
     final enabled = onPressed != null;
     Widget button = GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -248,14 +305,21 @@ class GlassIconButton extends StatelessWidget {
           width: size,
           height: size,
           decoration: active
-              ? BoxDecoration(
+              ? look.active(shape: BoxShape.circle)
+              : BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: Palette.warm,
-                  boxShadow: [BoxShadow(color: Palette.ember.withValues(alpha: 0.45), blurRadius: 18)],
-                )
-              : const BoxDecoration(shape: BoxShape.circle),
+                  boxShadow: look.leather
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
+                ),
           child: CustomPaint(
-            painter: active ? null : GlassPainter(radius: size / 2, reduced: reduced, grain: false, strength: 0.9),
+            painter: active ? null : look.surface(radius: size / 2, strength: 0.9, grain: look.leather),
             child: Icon(icon, size: iconSize ?? size * 0.46, color: active ? Palette.onWarm : Palette.cream),
           ),
         ),
@@ -287,7 +351,7 @@ class PillButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Opacity(
       opacity: onPressed == null ? 0.45 : 1,
-      child: GlassPill(
+      child: SurfacePill(
         selected: primary,
         onTap: onPressed == null
             ? null
@@ -336,7 +400,7 @@ class PillSelector<T> extends StatelessWidget {
       runSpacing: 8,
       children: [
         for (final v in values)
-          GlassPill(
+          SurfacePill(
             selected: v == selected,
             onTap: () {
               HapticFeedback.selectionClick();
@@ -380,13 +444,13 @@ class SegmentedPills<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reduced = GlassSettings.reducedOf(context);
+    final look = AppLook.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final perSegment = constraints.maxWidth / values.length;
         final showIcons = iconOf != null && perSegment >= 100;
         return CustomPaint(
-          painter: GlassPainter(radius: 100, reduced: reduced, grain: false, strength: 0.7),
+          painter: look.surface(radius: 100, relief: Relief.sunken, strength: 0.7, grain: look.leather),
           child: Padding(
             padding: const EdgeInsets.all(4),
             child: Row(
@@ -407,13 +471,9 @@ class SegmentedPills<T> extends StatelessWidget {
                           curve: Curves.easeOutCubic,
                           height: height - 8,
                           padding: const EdgeInsets.symmetric(horizontal: 6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            gradient: v == selected ? Palette.warm : null,
-                            boxShadow: v == selected
-                                ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.35), blurRadius: 14)]
-                                : null,
-                          ),
+                          decoration: v == selected
+                              ? look.active(radius: 100, glow: 0.8)
+                              : BoxDecoration(borderRadius: BorderRadius.circular(100)),
                           alignment: Alignment.center,
                           child: FittedBox(
                             fit: BoxFit.scaleDown,

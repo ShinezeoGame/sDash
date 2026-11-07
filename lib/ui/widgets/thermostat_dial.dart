@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../format.dart';
+import '../look.dart';
 import '../theme.dart';
+import 'glass.dart' show LeatherGrain;
 
 /// Cadran circulaire de thermostat : arc de 270°, poignée déplaçable au doigt.
 class ThermostatDial extends StatefulWidget {
@@ -111,6 +113,7 @@ class _ThermostatDialState extends State<ThermostatDial> {
                   currentFraction: widget.current == null ? null : _fraction(widget.current!),
                   enabled: widget.enabled,
                   heating: widget.heating,
+                  leather: AppLook.of(context).leather,
                 ),
                 child: Center(
                   child: Column(
@@ -165,12 +168,16 @@ class _DialPainter extends CustomPainter {
     required this.currentFraction,
     required this.enabled,
     required this.heating,
+    this.leather = false,
   });
 
   final double fraction;
   final double? currentFraction;
   final bool enabled;
   final bool heating;
+
+  /// Style cuir : disque rembourré, arc en sangle cousue, poignée en laiton.
+  final bool leather;
 
   static const _start = math.pi * 0.75;
   static const _sweep = math.pi * 1.5;
@@ -205,29 +212,65 @@ class _DialPainter extends CustomPainter {
       );
     }
 
-    // Disque intérieur en verre.
     final innerRadius = arcRadius - stroke * 1.25;
-    canvas.drawCircle(
-      center,
-      innerRadius,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.3, -0.5),
-          colors: [Colors.white.withValues(alpha: 0.09), Colors.white.withValues(alpha: 0.015)],
-        ).createShader(Rect.fromCircle(center: center, radius: innerRadius)),
-    );
-    canvas.drawCircle(
-      center,
-      innerRadius,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white.withValues(alpha: 0.22), Colors.white.withValues(alpha: 0.03)],
-        ).createShader(Rect.fromCircle(center: center, radius: innerRadius)),
-    );
+    final innerRect = Rect.fromCircle(center: center, radius: innerRadius);
+    if (leather) {
+      // Disque central : bouton de cuir rembourré, couronne surpiquée.
+      canvas.drawCircle(
+        center + const Offset(0, 4),
+        innerRadius,
+        Paint()
+          ..color = Colors.black.withValues(alpha: 0.5)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+      canvas.drawCircle(
+        center,
+        innerRadius,
+        Paint()
+          ..shader = const RadialGradient(
+            center: Alignment(-0.3, -0.45),
+            colors: [Color(0xFF6A3E22), Color(0xFF3A2112), Color(0xFF26150B)],
+            stops: [0, 0.7, 1],
+          ).createShader(innerRect),
+      );
+      LeatherGrain.paint(canvas, innerRect, clip: RRect.fromRectAndRadius(innerRect, Radius.circular(innerRadius)));
+      canvas.drawCircle(
+        center,
+        innerRadius - 0.7,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.4
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [const Color(0xFFFFE2BC).withValues(alpha: 0.3), Colors.black.withValues(alpha: 0.5)],
+          ).createShader(innerRect),
+      );
+      _dashedCircle(canvas, center, innerRadius - side * 0.035, Palette.thread.withValues(alpha: 0.5), 1.3);
+    } else {
+      // Disque intérieur en verre.
+      canvas.drawCircle(
+        center,
+        innerRadius,
+        Paint()
+          ..shader = RadialGradient(
+            center: const Alignment(-0.3, -0.5),
+            colors: [Colors.white.withValues(alpha: 0.09), Colors.white.withValues(alpha: 0.015)],
+          ).createShader(innerRect),
+      );
+      canvas.drawCircle(
+        center,
+        innerRadius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1
+          ..shader = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white.withValues(alpha: 0.22), Colors.white.withValues(alpha: 0.03)],
+          ).createShader(innerRect),
+      );
+    }
 
     // Rail.
     canvas.drawArc(
@@ -239,7 +282,7 @@ class _DialPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = stroke
         ..strokeCap = StrokeCap.round
-        ..color = Colors.black.withValues(alpha: 0.25),
+        ..color = Colors.black.withValues(alpha: leather ? 0.5 : 0.25),
     );
     canvas.drawArc(
       arcRect,
@@ -257,13 +300,29 @@ class _DialPainter extends CustomPainter {
     final gradient = SweepGradient(
       startAngle: 0,
       endAngle: _sweep,
-      colors: enabled
-          ? const [Palette.terracotta, Palette.cognac, Palette.amber, Palette.honey]
-          : [Palette.dusk, Palette.taupe],
+      colors: !enabled
+          ? [Palette.dusk, Palette.taupe]
+          : leather
+          ? const [Color(0xFF8E4F22), Color(0xFFB57340), Color(0xFFD69A5C), Color(0xFFE9B67E)]
+          : const [Palette.terracotta, Palette.cognac, Palette.amber, Palette.honey],
       transform: const GradientRotation(_start),
     ).createShader(arcRect);
 
-    if (enabled) {
+    if (enabled && leather) {
+      // Ombre portée de la sangle.
+      canvas.drawArc(
+        arcRect.shift(const Offset(0, 3)),
+        _start,
+        sweep,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke
+          ..strokeCap = StrokeCap.round
+          ..color = Colors.black.withValues(alpha: 0.55)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+      );
+    } else if (enabled) {
       // Halo lumineux sous l'arc.
       canvas.drawArc(
         arcRect,
@@ -289,6 +348,20 @@ class _DialPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..shader = gradient,
     );
+    if (leather && fraction > 0.02) {
+      // Surpiqûre au centre de la sangle.
+      final strap = Path()..addArc(arcRect, _start, sweep);
+      final thread = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFFFFF0D8).withValues(alpha: 0.6);
+      for (final metric in strap.computeMetrics()) {
+        for (var d = stroke * 0.6; d < metric.length - stroke * 0.6; d += 9) {
+          canvas.drawPath(metric.extractPath(d, d + 5), thread);
+        }
+      }
+    }
 
     // Température mesurée.
     final current = currentFraction;
@@ -309,8 +382,35 @@ class _DialPainter extends CustomPainter {
         ..color = Colors.black.withValues(alpha: 0.45)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
     );
-    canvas.drawCircle(knob, knobRadius, Paint()..color = enabled ? Palette.cream : Palette.sand);
-    canvas.drawCircle(knob, knobRadius * 0.42, Paint()..color = enabled ? Palette.cognac : Palette.dusk);
+    if (leather) {
+      final knobRect = Rect.fromCircle(center: knob, radius: knobRadius);
+      canvas.drawCircle(knob, knobRadius, Paint()..shader = Palette.brass.createShader(knobRect));
+      canvas.drawCircle(
+        knob,
+        knobRadius * 0.55,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..color = const Color(0xFF6E4C17).withValues(alpha: 0.6),
+      );
+    } else {
+      canvas.drawCircle(knob, knobRadius, Paint()..color = enabled ? Palette.cream : Palette.sand);
+      canvas.drawCircle(knob, knobRadius * 0.42, Paint()..color = enabled ? Palette.cognac : Palette.dusk);
+    }
+  }
+
+  void _dashedCircle(Canvas canvas, Offset center, double radius, Color color, double width) {
+    final path = Path()..addOval(Rect.fromCircle(center: center, radius: radius));
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round
+      ..color = color;
+    for (final metric in path.computeMetrics()) {
+      for (var d = 0.0; d < metric.length; d += 9) {
+        canvas.drawPath(metric.extractPath(d, d + 5), paint);
+      }
+    }
   }
 
   @override
@@ -318,5 +418,6 @@ class _DialPainter extends CustomPainter {
       old.fraction != fraction ||
       old.currentFraction != currentFraction ||
       old.enabled != enabled ||
-      old.heating != heating;
+      old.heating != heating ||
+      old.leather != leather;
 }

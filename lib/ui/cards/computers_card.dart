@@ -7,7 +7,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 
 Color powerColor(PowerState state) => switch (state) {
   PowerState.on => Palette.sage,
@@ -57,7 +57,7 @@ class PowerButton extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          GlassIconButton(
+          SurfaceIconButton(
             icon: Icons.power_settings_new_rounded,
             size: size,
             active: state == PowerState.on,
@@ -85,7 +85,7 @@ class ComputersCard extends StatelessWidget {
     final computers = home.state.computers;
     final onCount = computers.where((c) => c.state == PowerState.on).length;
 
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

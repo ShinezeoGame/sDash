@@ -5,7 +5,7 @@ import 'state/home_controller.dart';
 import 'state/home_scope.dart';
 import 'ui/shell.dart';
 import 'ui/theme.dart';
-import 'ui/widgets/glass.dart';
+import 'ui/look.dart';
 
 class SDashApp extends StatelessWidget {
   const SDashApp({super.key, required this.controller});
@@ -25,8 +25,11 @@ class SDashApp extends StatelessWidget {
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         builder: (context, child) => ListenableBuilder(
           listenable: controller,
-          builder: (context, _) =>
-              GlassSettings(reduced: controller.settings.reducedGlass, child: child ?? const SizedBox.shrink()),
+          builder: (context, _) => AppLook(
+            style: controller.settings.style,
+            reducedGlass: controller.settings.reducedGlass,
+            child: child ?? const SizedBox.shrink(),
+          ),
         ),
         home: const Shell(),
       ),

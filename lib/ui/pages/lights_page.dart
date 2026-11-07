@@ -8,7 +8,7 @@ import '../icons.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import 'page_scaffold.dart';
 
 class LightsPage extends StatelessWidget {
@@ -39,7 +39,7 @@ class LightsPage extends StatelessWidget {
       ],
       children: [
         if (groups.isEmpty)
-          const GlassCard(
+          const SurfaceCard(
             child: EmptyHint(icon: Icons.lightbulb_outline_rounded, text: 'Aucune lumière détectée'),
           ),
         for (final (room, lights) in groups) ...[
@@ -75,7 +75,7 @@ class LightTile extends StatelessWidget {
         : light.isOn
         ? (light.dimmable ? 'Allumée · ${(light.brightness * 100).round()} %' : 'Allumée')
         : 'Éteinte';
-    return GlassCard(
+    return SurfaceCard(
       tint: light.isOn ? Palette.amber : null,
       padding: const EdgeInsets.all(18),
       onTap: light.available ? () => home.toggleLight(light.id) : null,

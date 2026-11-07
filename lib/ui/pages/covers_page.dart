@@ -5,7 +5,7 @@ import '../../state/home_scope.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import '../widgets/shutter_view.dart';
 import 'page_scaffold.dart';
 
@@ -35,7 +35,7 @@ class CoversPage extends StatelessWidget {
       ],
       children: [
         if (state.covers.isEmpty)
-          const GlassCard(
+          const SurfaceCard(
             child: EmptyHint(icon: Icons.blinds_rounded, text: 'Aucun volet détecté'),
           ),
         TileGrid(minTileWidth: 240, tileHeight: 380, children: [for (final c in state.covers) CoverTile(cover: c)]),
@@ -63,7 +63,7 @@ class CoverTile extends StatelessWidget {
             ? 'Ouvert'
             : 'Ouvert à ${cover.position} %',
     };
-    return GlassCard(
+    return SurfaceCard(
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -90,18 +90,18 @@ class CoverTile extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              GlassIconButton(
+              SurfaceIconButton(
                 icon: Icons.keyboard_arrow_up_rounded,
                 tooltip: 'Ouvrir',
                 active: cover.motion == CoverMotion.opening,
                 onPressed: cover.available ? () => home.coverCommand(cover.id, CoverCommand.open) : null,
               ),
-              GlassIconButton(
+              SurfaceIconButton(
                 icon: Icons.stop_rounded,
                 tooltip: 'Stop',
                 onPressed: cover.available ? () => home.coverCommand(cover.id, CoverCommand.stop) : null,
               ),
-              GlassIconButton(
+              SurfaceIconButton(
                 icon: Icons.keyboard_arrow_down_rounded,
                 tooltip: 'Fermer',
                 active: cover.motion == CoverMotion.closing,

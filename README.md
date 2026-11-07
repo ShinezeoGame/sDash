@@ -3,7 +3,8 @@
 # sDash
 
 Tableau de bord domotique pour tablette Android : lumières, chauffage, volets, prises,
-scènes et réveil des ordinateurs, dans une interface en verre dépoli aux tons cuir et cognac.
+scènes et réveil des ordinateurs, dans une interface en cuir surpiqué aux tons cognac
+(ou, au choix, en verre dépoli).
 
 <p align="center">
   <a href="https://github.com/ShinezeoGame/sDash/releases/latest/download/sdash.apk"><img alt="Télécharger la dernière version (APK Android)" src="https://img.shields.io/badge/T%C3%A9l%C3%A9charger-la%20derni%C3%A8re%20version-F0A257?style=for-the-badge&logo=android&logoColor=white&labelColor=3B2516"></a>
@@ -16,6 +17,13 @@ scènes et réveil des ordinateurs, dans une interface en verre dépoli aux tons
 | --- | --- |
 | ![Page chauffage](docs/captures/chauffage.jpg) | ![Page lumières](docs/captures/lumieres.jpg) |
 
+<details>
+<summary>Le même tableau de bord en style « verre dépoli »</summary>
+
+![Accueil en style verre](docs/captures/accueil-verre.jpg)
+
+</details>
+
 ## Fonctionnalités
 
 - **Accueil** : tout tient sur un écran de tablette en paysage (thermostat, lumières par pièce,
@@ -26,6 +34,9 @@ scènes et réveil des ordinateurs, dans une interface en verre dépoli aux tons
 - **Volets** : glissez sur la fenêtre pour choisir la position, ou ouvrir / stop / fermer.
 - **Appareils** : prises connectées, scènes, et ordinateurs (allumage par Wake-on-LAN,
   état en ligne, extinction facultative).
+- **Deux matières** (Réglages → Affichage) : **cuir**, par défaut (pièces de cuir rembourrées
+  et surpiquées, interrupteurs à bouton laiton, états actifs en cuir fauve), ou **verre**
+  dépoli sur fond de lumières chaudes.
 - **Tablette murale** : écran toujours allumé, plein écran, effet verre allégé pour les
   tablettes peu puissantes.
 - **Mode démo** : une maison simulée complète, active par défaut, pour tout essayer sans rien configurer.
@@ -118,7 +129,8 @@ disponible que sur la tablette.
 | `lib/models/` | Modèles de la maison (pièces, appareils, état complet) |
 | `lib/data/` | Sources domotiques : démo, Home Assistant, réseau local (Wake-on-LAN), réglages |
 | `lib/state/` | `HomeController` : relie l'interface, les réglages et la source domotique |
-| `lib/ui/widgets/` | Matériau verre, grain de cuir, cadran, volet, curseurs, histogramme |
+| `lib/ui/look.dart` | `AppLook` : matière active (cuir ou verre) fournie à tous les composants |
+| `lib/ui/widgets/` | Matériaux cuir et verre, grain, cadran, volet, curseurs, histogramme |
 | `lib/ui/cards/` | Cartes du tableau de bord |
 | `lib/ui/pages/` | Pages détaillées et réglages |
 

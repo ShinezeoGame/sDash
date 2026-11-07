@@ -7,19 +7,6 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-/// Réglages visuels partagés (effet verre allégé pour les tablettes modestes).
-class GlassSettings extends InheritedWidget {
-  const GlassSettings({super.key, required this.reduced, required super.child});
-
-  final bool reduced;
-
-  static bool reducedOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<GlassSettings>()?.reduced ?? false;
-
-  @override
-  bool updateShouldNotify(GlassSettings oldWidget) => oldWidget.reduced != reduced;
-}
-
 /// Texture de grain de cuir générée une fois au démarrage (bruit cellulaire tuilable).
 abstract final class LeatherGrain {
   static ui.Image? image;
@@ -101,67 +88,6 @@ abstract final class LeatherGrain {
     } else {
       canvas.drawRect(rect, paint);
     }
-  }
-}
-
-/// Carte en verre dépoli aux reflets chauds.
-class GlassCard extends StatelessWidget {
-  const GlassCard({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.all(22),
-    this.radius = 30,
-    this.blur = 28,
-    this.tint,
-    this.stitched = false,
-    this.onTap,
-    this.onLongPress,
-    this.grain = true,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final double blur;
-
-  /// Lueur colorée optionnelle (ex. ambre pour un appareil allumé).
-  final Color? tint;
-
-  /// Surpiqûre façon cuir le long du bord.
-  final bool stitched;
-  final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
-  final bool grain;
-
-  @override
-  Widget build(BuildContext context) {
-    final reduced = GlassSettings.reducedOf(context);
-    final borderRadius = BorderRadius.circular(radius);
-    Widget content = CustomPaint(
-      painter: GlassPainter(radius: radius, tint: tint, stitched: stitched, reduced: reduced, grain: grain),
-      child: Padding(padding: padding, child: child),
-    );
-    if (onTap != null || onLongPress != null) {
-      content = Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          borderRadius: borderRadius,
-          onTap: onTap,
-          onLongPress: onLongPress,
-          splashColor: Palette.amber.withValues(alpha: 0.10),
-          highlightColor: Palette.amber.withValues(alpha: 0.05),
-          child: content,
-        ),
-      );
-    }
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: BackdropFilter.grouped(
-        filter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        enabled: !reduced,
-        child: content,
-      ),
-    );
   }
 }
 
@@ -288,55 +214,4 @@ class GlassPainter extends CustomPainter {
       old.reduced != reduced ||
       old.grain != grain ||
       old.strength != strength;
-}
-
-/// Pastille de verre (étiquettes, filtres, indicateurs).
-class GlassPill extends StatelessWidget {
-  const GlassPill({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-    this.onTap,
-    this.selected = false,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final VoidCallback? onTap;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final reduced = GlassSettings.reducedOf(context);
-    final pill = AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      decoration: selected
-          ? BoxDecoration(
-              gradient: Palette.warm,
-              borderRadius: BorderRadius.circular(100),
-              boxShadow: [BoxShadow(color: Palette.ember.withValues(alpha: 0.35), blurRadius: 16)],
-            )
-          : const BoxDecoration(),
-      child: CustomPaint(
-        painter: selected ? null : GlassPainter(radius: 100, reduced: reduced, grain: false, strength: 0.9),
-        child: Padding(
-          padding: padding,
-          child: DefaultTextStyle.merge(
-            style: AppText.label.copyWith(
-              color: selected ? Palette.onWarm : Palette.sand,
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
-            child: IconTheme.merge(
-              data: IconThemeData(color: selected ? Palette.onWarm : Palette.sand, size: 18),
-              child: child,
-            ),
-          ),
-        ),
-      ),
-    );
-    if (onTap == null) return pill;
-    return GestureDetector(onTap: onTap, behavior: HitTestBehavior.opaque, child: pill);
-  }
 }

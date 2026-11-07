@@ -9,7 +9,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import 'page_scaffold.dart';
 
 class DevicesPage extends StatelessWidget {
@@ -34,7 +34,7 @@ class DevicesPage extends StatelessWidget {
           ),
         ),
         if (state.computers.isEmpty)
-          const GlassCard(
+          const SurfaceCard(
             child: EmptyHint(
               icon: Icons.desktop_windows_rounded,
               text: 'Ajoutez un ordinateur dans les réglages pour l’allumer à distance (Wake-on-LAN).',
@@ -74,7 +74,7 @@ class _ComputerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final home = HomeScope.read(context);
     final on = pc.state == PowerState.on;
-    return GlassCard(
+    return SurfaceCard(
       tint: on ? Palette.sage : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -118,7 +118,7 @@ class _SwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final home = HomeScope.read(context);
     final room = HomeScope.of(context).state.room(device.roomId);
-    return GlassCard(
+    return SurfaceCard(
       tint: device.isOn ? Palette.amber : null,
       padding: const EdgeInsets.all(18),
       onTap: device.available ? () => home.toggleSwitch(device.id) : null,

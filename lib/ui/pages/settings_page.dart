@@ -7,7 +7,7 @@ import '../../state/home_scope.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import 'page_scaffold.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -265,14 +265,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ],
                               ),
                             ),
-                            GlassIconButton(
+                            SurfaceIconButton(
                               icon: Icons.edit_rounded,
                               size: 40,
                               tooltip: 'Modifier',
                               onPressed: () => _editComputer(c),
                             ),
                             const SizedBox(width: 8),
-                            GlassIconButton(
+                            SurfaceIconButton(
                               icon: Icons.delete_outline_rounded,
                               size: 40,
                               tooltip: 'Supprimer',
@@ -289,12 +289,40 @@ class _SettingsPageState extends State<SettingsPage> {
           icon: Icons.palette_rounded,
           child: Column(
             children: [
-              _ToggleRow(
-                title: 'Effet verre allégé',
-                subtitle: 'Désactive le flou d’arrière-plan sur les tablettes peu puissantes',
-                value: settings.reducedGlass,
-                onChanged: (v) => home.updateSettings(home.settings.copyWith(reducedGlass: v)),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Matière', style: AppText.subtitle),
+                          SizedBox(height: 2),
+                          Text('Cuir surpiqué ou verre dépoli', style: AppText.label),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 300,
+                      child: SegmentedPills<AppStyle>(
+                        values: AppStyle.values,
+                        selected: settings.style,
+                        labelOf: (v) => v == AppStyle.leather ? 'Cuir' : 'Verre',
+                        iconOf: (v) => v == AppStyle.leather ? Icons.texture_rounded : Icons.blur_on_rounded,
+                        onSelected: (v) => home.updateSettings(home.settings.copyWith(style: v)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              if (settings.style == AppStyle.glass)
+                _ToggleRow(
+                  title: 'Effet verre allégé',
+                  subtitle: 'Désactive le flou d’arrière-plan sur les tablettes peu puissantes',
+                  value: settings.reducedGlass,
+                  onChanged: (v) => home.updateSettings(home.settings.copyWith(reducedGlass: v)),
+                ),
               _ToggleRow(
                 title: 'Garder l’écran allumé',
                 subtitle: 'Idéal pour une tablette fixée au mur',
@@ -335,7 +363,7 @@ class _Section extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
-      child: GlassCard(
+      child: SurfaceCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

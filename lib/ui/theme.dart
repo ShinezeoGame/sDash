@@ -31,6 +31,26 @@ abstract final class Palette {
 
   /// Texte sombre posé sur le dégradé chaud.
   static const onWarm = Color(0xFF2B1608);
+
+  // Cuir (style « cuir »)
+  static const leatherTop = Color(0xFF4A2B18);
+  static const leatherBottom = Color(0xFF2C190E);
+  static const thread = Color(0xFFEAD3AE);
+
+  /// Cuir fauve des éléments actifs (remplace la lueur du style verre).
+  static const tan = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFE6B27A), Color(0xFFC88A4E), Color(0xFFA5622D)],
+    stops: [0, 0.55, 1],
+  );
+
+  /// Laiton des boutons d'interrupteur et de la poignée du thermostat.
+  static const brass = RadialGradient(
+    center: Alignment(-0.35, -0.45),
+    colors: [Color(0xFFFFF0C2), Color(0xFFE2BC6A), Color(0xFFA77A2C), Color(0xFF6E4C17)],
+    stops: [0, 0.35, 0.8, 1],
+  );
 }
 
 /// Styles typographiques (police Outfit embarquée).

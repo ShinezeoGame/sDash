@@ -6,7 +6,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import '../widgets/shutter_view.dart';
 
 /// Aperçu des volets : mini-fenêtres réglables au doigt et commandes générales.
@@ -19,7 +19,7 @@ class CoversCard extends StatelessWidget {
     final state = home.state;
     final covers = state.covers;
 
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -31,14 +31,14 @@ class CoversCard extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                GlassIconButton(
+                SurfaceIconButton(
                   icon: Icons.keyboard_arrow_up_rounded,
                   size: 40,
                   tooltip: 'Tout ouvrir',
                   onPressed: covers.isEmpty ? null : () => home.allCovers(CoverCommand.open),
                 ),
                 const SizedBox(width: 8),
-                GlassIconButton(
+                SurfaceIconButton(
                   icon: Icons.keyboard_arrow_down_rounded,
                   size: 40,
                   tooltip: 'Tout fermer',

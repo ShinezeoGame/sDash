@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../format.dart';
+import '../look.dart';
 import '../theme.dart';
 
 /// Histogramme des 7 derniers jours (le dernier élément est aujourd'hui).
@@ -33,6 +34,7 @@ class _WeekBarsState extends State<WeekBars> {
     final values = widget.values;
     final today = widget.today ?? DateTime.now();
     final maxValue = values.fold<double>(0, math.max);
+    final look = AppLook.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         const labelHeight = 26.0;
@@ -78,32 +80,47 @@ class _WeekBarsState extends State<WeekBars> {
                         tween: Tween(end: maxValue <= 0 ? 0 : values[i] / maxValue),
                         duration: const Duration(milliseconds: 700),
                         curve: Curves.easeOutCubic,
-                        builder: (context, t, _) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          width: barWidth,
-                          height: math.max(barWidth * 0.9, barArea * t),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(barWidth / 2),
-                            gradient: i == _selected
-                                ? const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [Palette.cream, Palette.honey],
-                                  )
-                                : LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.white.withValues(alpha: 0.14),
-                                      Colors.white.withValues(alpha: 0.04),
-                                    ],
-                                  ),
-                            border: Border.all(color: Colors.white.withValues(alpha: i == _selected ? 0.5 : 0.10)),
-                            boxShadow: i == _selected
-                                ? [BoxShadow(color: Palette.honey.withValues(alpha: 0.35), blurRadius: 18)]
-                                : null,
-                          ),
-                        ),
+                        builder: (context, t, _) {
+                          final height = math.max(barWidth * 0.9, barArea * t);
+                          if (look.leather) {
+                            // Cuir : gorges creusées, la barre choisie est une sangle fauve.
+                            return SizedBox(
+                              width: barWidth,
+                              height: height,
+                              child: i == _selected
+                                  ? DecoratedBox(decoration: look.active(radius: barWidth / 2, glow: 0.8))
+                                  : CustomPaint(
+                                      painter: look.surface(radius: barWidth / 2, relief: Relief.sunken, grain: false),
+                                    ),
+                            );
+                          }
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            width: barWidth,
+                            height: height,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(barWidth / 2),
+                              gradient: i == _selected
+                                  ? const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [Palette.cream, Palette.honey],
+                                    )
+                                  : LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.white.withValues(alpha: 0.14),
+                                        Colors.white.withValues(alpha: 0.04),
+                                      ],
+                                    ),
+                              border: Border.all(color: Colors.white.withValues(alpha: i == _selected ? 0.5 : 0.10)),
+                              boxShadow: i == _selected
+                                  ? [BoxShadow(color: Palette.honey.withValues(alpha: 0.35), blurRadius: 18)]
+                                  : null,
+                            ),
+                          );
+                        },
                       ),
                       SizedBox(
                         height: labelHeight,

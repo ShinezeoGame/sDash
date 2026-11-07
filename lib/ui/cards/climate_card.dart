@@ -8,7 +8,7 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import '../widgets/thermostat_dial.dart';
 
 const climateModeOrder = [ClimateMode.comfort, ClimateMode.eco, ClimateMode.away, ClimateMode.off];
@@ -29,7 +29,7 @@ class _ClimateCardState extends State<ClimateCard> {
     final home = HomeScope.of(context);
     final climates = home.state.climates;
     if (climates.isEmpty) {
-      return const GlassCard(
+      return const SurfaceCard(
         stitched: true,
         child: Column(
           children: [
@@ -48,7 +48,7 @@ class _ClimateCardState extends State<ClimateCard> {
       if (home.state.outdoorTemp != null) 'Dehors ${formatTemp(home.state.outdoorTemp)}',
     ].join(' · ');
 
-    return GlassCard(
+    return SurfaceCard(
       stitched: true,
       tint: device.isHeating && device.mode != ClimateMode.off ? Palette.ember : null,
       child: Column(
@@ -57,7 +57,7 @@ class _ClimateCardState extends State<ClimateCard> {
           CardHeader(
             title: 'Chauffage',
             subtitle: details.isEmpty ? room : details,
-            trailing: GlassIconButton(
+            trailing: SurfaceIconButton(
               icon: Icons.open_in_full_rounded,
               size: 40,
               tooltip: 'Tous les thermostats',
@@ -74,7 +74,7 @@ class _ClimateCardState extends State<ClimateCard> {
                 separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, i) {
                   final c = climates[i];
-                  return GlassPill(
+                  return SurfacePill(
                     selected: c.id == device.id,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     onTap: () => setState(() => _selectedId = c.id),
@@ -89,7 +89,7 @@ class _ClimateCardState extends State<ClimateCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                GlassIconButton(
+                SurfaceIconButton(
                   icon: Icons.remove_rounded,
                   tooltip: 'Baisser',
                   onPressed: device.mode == ClimateMode.off ? null : () => home.nudgeClimate(device.id, -1),
@@ -111,7 +111,7 @@ class _ClimateCardState extends State<ClimateCard> {
                     ),
                   ),
                 ),
-                GlassIconButton(
+                SurfaceIconButton(
                   icon: Icons.add_rounded,
                   tooltip: 'Augmenter',
                   onPressed: device.mode == ClimateMode.off ? null : () => home.nudgeClimate(device.id, 1),

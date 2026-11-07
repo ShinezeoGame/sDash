@@ -7,9 +7,10 @@ import 'package:flutter/services.dart';
 import '../../models/home.dart';
 import '../../state/home_scope.dart';
 import '../icons.dart';
+import '../look.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 
 /// Grille de scènes (ambiances) activables d'un geste.
 class ScenesGrid extends StatefulWidget {
@@ -99,7 +100,7 @@ class _SceneTile extends StatelessWidget {
       textAlign: vertical ? TextAlign.center : TextAlign.start,
       style: AppText.label.copyWith(fontSize: vertical ? 13 : 14, color: active ? Palette.onWarm : Palette.cream),
     );
-    final reduced = GlassSettings.reducedOf(context);
+    final look = AppLook.of(context);
     return Semantics(
       button: true,
       label: 'Activer la scène ${scene.name}',
@@ -107,13 +108,22 @@ class _SceneTile extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 260),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: active ? Palette.warm : null,
-            boxShadow: active ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.45), blurRadius: 20)] : null,
-          ),
+          decoration: active
+              ? look.active(radius: 20)
+              : BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: look.leather
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
+                ),
           child: CustomPaint(
-            painter: active ? null : GlassPainter(radius: 20, reduced: reduced, grain: false, strength: 0.8),
+            painter: active ? null : look.surface(radius: 20, strength: 0.8, grain: look.leather),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: vertical ? 6 : 12),
               child: vertical
@@ -142,7 +152,7 @@ class ScenesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scenes = HomeScope.of(context).state.scenes;
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

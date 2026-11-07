@@ -8,6 +8,7 @@ import '../state/home_controller.dart';
 import '../state/home_scope.dart';
 import 'format.dart';
 import 'icons.dart';
+import 'look.dart';
 import 'navigation.dart';
 import 'pages/climate_page.dart';
 import 'pages/covers_page.dart';
@@ -18,7 +19,7 @@ import 'pages/settings_page.dart';
 import 'theme.dart';
 import 'widgets/ambient_background.dart';
 import 'widgets/common.dart';
-import 'widgets/glass.dart';
+import 'widgets/surface.dart';
 
 /// Structure de l'application : rail de navigation, barre supérieure et page active.
 class Shell extends StatefulWidget {
@@ -186,7 +187,7 @@ class _NavRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final main = AppSection.values.where((s) => s != AppSection.settings);
-    return GlassCard(
+    return SurfaceCard(
       stitched: true,
       radius: 34,
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
@@ -255,13 +256,9 @@ class _NavItem extends StatelessWidget {
                 curve: Curves.easeOutCubic,
                 width: 56,
                 height: 40,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: selected ? Palette.warm : null,
-                  boxShadow: selected
-                      ? [BoxShadow(color: Palette.ember.withValues(alpha: 0.45), blurRadius: 18)]
-                      : null,
-                ),
+                decoration: selected
+                    ? AppLook.of(context).active(radius: 16)
+                    : BoxDecoration(borderRadius: BorderRadius.circular(16)),
                 child: Icon(section.icon, size: 22, color: selected ? Palette.onWarm : Palette.taupe),
               ),
               const SizedBox(height: 6),
@@ -292,7 +289,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return SurfaceCard(
       radius: 28,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
       child: Row(
@@ -369,7 +366,7 @@ class _TopBar extends StatelessWidget {
           ),
         ),
         if (!compact && state.outdoorTemp != null) ...[
-          GlassPill(
+          SurfacePill(
             child: Row(
               children: [
                 Icon(weatherIcon(state.weather), color: Palette.honey),
@@ -381,7 +378,7 @@ class _TopBar extends StatelessWidget {
           const SizedBox(width: 10),
         ],
         if (!compact && state.indoorTemp != null) ...[
-          GlassPill(
+          SurfacePill(
             child: Row(
               children: [
                 const Icon(Icons.home_rounded, color: Palette.honey),
@@ -394,7 +391,7 @@ class _TopBar extends StatelessWidget {
         ],
         Tooltip(
           message: link.message ?? linkText,
-          child: GlassPill(
+          child: SurfacePill(
             onTap: link.state == LinkState.offline ? home.reconnect : null,
             child: Row(
               children: [

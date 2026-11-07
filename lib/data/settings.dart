@@ -4,6 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum BackendKind { demo, homeAssistant }
 
+/// Matière de l'interface : cuir (opaque, surpiqué) ou verre dépoli.
+enum AppStyle { leather, glass }
+
 /// Un ordinateur pilotable : soit en direct (Wake-on-LAN + ping depuis la tablette),
 /// soit via une entité Home Assistant (ex. `switch.pc_bureau`).
 class ComputerConfig {
@@ -83,6 +86,7 @@ class AppSettings {
     this.haToken = '',
     this.energySensor = '',
     this.computers = const [],
+    this.style = AppStyle.leather,
     this.reducedGlass = false,
     this.keepScreenOn = true,
     this.immersive = true,
@@ -97,7 +101,9 @@ class AppSettings {
   final String energySensor;
   final List<ComputerConfig> computers;
 
-  /// Désactive le flou d'arrière-plan pour les tablettes peu puissantes.
+  final AppStyle style;
+
+  /// Désactive le flou d'arrière-plan pour les tablettes peu puissantes (style verre).
   final bool reducedGlass;
   final bool keepScreenOn;
   final bool immersive;
@@ -120,6 +126,7 @@ class AppSettings {
     String? haToken,
     String? energySensor,
     List<ComputerConfig>? computers,
+    AppStyle? style,
     bool? reducedGlass,
     bool? keepScreenOn,
     bool? immersive,
@@ -130,6 +137,7 @@ class AppSettings {
     haToken: haToken ?? this.haToken,
     energySensor: energySensor ?? this.energySensor,
     computers: computers ?? this.computers,
+    style: style ?? this.style,
     reducedGlass: reducedGlass ?? this.reducedGlass,
     keepScreenOn: keepScreenOn ?? this.keepScreenOn,
     immersive: immersive ?? this.immersive,
@@ -142,6 +150,7 @@ class AppSettings {
     'haToken': haToken,
     'energySensor': energySensor,
     'computers': computers.map((c) => c.toJson()).toList(),
+    'style': style.name,
     'reducedGlass': reducedGlass,
     'keepScreenOn': keepScreenOn,
     'immersive': immersive,
@@ -157,6 +166,7 @@ class AppSettings {
         .whereType<Map<String, dynamic>>()
         .map(ComputerConfig.fromJson)
         .toList(),
+    style: AppStyle.values.firstWhere((v) => v.name == json['style'], orElse: () => AppStyle.leather),
     reducedGlass: json['reducedGlass'] as bool? ?? false,
     keepScreenOn: json['keepScreenOn'] as bool? ?? true,
     immersive: json['immersive'] as bool? ?? true,

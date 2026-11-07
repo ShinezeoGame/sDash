@@ -2,8 +2,11 @@
 
 - **Toujours communiquer avec l'utilisateur en français.** L'interface, les commentaires
   et les messages de commit sont aussi en français.
-- Application Flutter (Android d'abord) : tableau de bord domotique, style verre dépoli
-  aux tons cuir / cognac (palette dans `lib/ui/theme.dart`).
+- Application Flutter (Android d'abord) : tableau de bord domotique aux tons cuir / cognac
+  (palette dans `lib/ui/theme.dart`). Deux matières : **cuir** (par défaut) et verre dépoli,
+  choisies dans Réglages → Affichage. Les composants ne dessinent jamais leur matière
+  eux-mêmes : ils passent par `AppLook.of(context)` (`surface()`, `active()`) et
+  `SurfaceCard` / `SurfacePill` (`lib/ui/widgets/surface.dart`).
 - Vérifications avant de pousser : `flutter analyze` et `flutter test` (les tests d'affichage
   de `test/app_test.dart` parcourent toutes les pages sur 4 tailles d'écran).
 - Formatage : `dart format -l 120 lib test`.

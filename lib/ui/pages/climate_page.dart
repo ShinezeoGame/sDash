@@ -8,7 +8,7 @@ import '../icons.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/glass.dart';
+import '../widgets/surface.dart';
 import '../widgets/thermostat_dial.dart';
 import 'page_scaffold.dart';
 
@@ -28,7 +28,7 @@ class ClimatePage extends StatelessWidget {
       ].join(' · '),
       children: [
         if (state.climates.isEmpty)
-          const GlassCard(
+          const SurfaceCard(
             child: EmptyHint(icon: Icons.thermostat_rounded, text: 'Aucun thermostat détecté'),
           ),
         TileGrid(
@@ -51,7 +51,7 @@ class ClimateTile extends StatelessWidget {
     final home = HomeScope.of(context);
     final room = home.state.room(device.roomId);
     final off = device.mode == ClimateMode.off;
-    return GlassCard(
+    return SurfaceCard(
       stitched: true,
       tint: device.isHeating && !off ? Palette.ember : null,
       child: Column(
@@ -95,13 +95,13 @@ class ClimateTile extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              GlassIconButton(
+              SurfaceIconButton(
                 icon: Icons.remove_rounded,
                 tooltip: 'Baisser',
                 onPressed: off ? null : () => home.nudgeClimate(device.id, -1),
               ),
               const SizedBox(width: 18),
-              GlassIconButton(
+              SurfaceIconButton(
                 icon: Icons.add_rounded,
                 tooltip: 'Augmenter',
                 onPressed: off ? null : () => home.nudgeClimate(device.id, 1),

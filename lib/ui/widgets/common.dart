@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../look.dart';
 import '../theme.dart';
 
 /// En-tête de carte : titre, sous-titre et actions éventuelles.
@@ -48,6 +49,22 @@ class IconOrb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = color ?? Palette.honey;
+    final look = AppLook.of(context);
+    if (look.leather) {
+      // Cuir : creux dans le cuir quand éteint, médaillon fauve quand allumé.
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 260),
+        width: size,
+        height: size,
+        decoration: active
+            ? look.active(shape: BoxShape.circle, glow: 0.8)
+            : const BoxDecoration(shape: BoxShape.circle),
+        child: CustomPaint(
+          painter: active ? null : look.surface(radius: size / 2, relief: Relief.sunken, grain: false),
+          child: Icon(icon, size: size * 0.48, color: active ? Palette.onWarm : Palette.sand),
+        ),
+      );
+    }
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),
       width: size,
