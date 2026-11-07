@@ -166,19 +166,13 @@ class _Logo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 54,
-      height: 54,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: Palette.warm,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
-        boxShadow: [BoxShadow(color: Palette.ember.withValues(alpha: 0.5), blurRadius: 22)],
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.45), blurRadius: 14, offset: const Offset(0, 5))],
       ),
-      alignment: Alignment.center,
-      child: Text(
-        's',
-        style: AppText.greeting.copyWith(color: Palette.onWarm, fontSize: 30, fontWeight: FontWeight.w600, height: 1),
-      ),
+      child: Image.asset('assets/branding/logo.png', filterQuality: FilterQuality.medium, semanticLabel: 'sDash'),
     );
   }
 }

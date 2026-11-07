@@ -9,4 +9,8 @@
 - Formatage : `dart format -l 120 lib test`.
 - Les sources domotiques implémentent `HomeBackend` (`lib/data/home_backend.dart`) ;
   le mode démo (`DemoBackend`) est la source par défaut.
-- L'APK est produit par `.github/workflows/build-apk.yml` (artefact `sdash-apk`).
+- L'APK est produit par `.github/workflows/build-apk.yml` (artefact `sdash-apk`) et publié
+  en Release (`sdash.apk`) à chaque envoi sur la branche par défaut.
+- Logo choisi par l'utilisateur : cuir capitonné, « s » gravé (pas cousu, pas de verre).
+  Source : `tools/logo/generer_logo.py` → `docs/logo/*.svg` ; les PNG (mipmaps Android,
+  icônes web, `assets/branding/logo.png`) sont des exports de ces SVG.

@@ -87,7 +87,14 @@ abstract final class LeatherGrain {
     final img = image;
     if (img == null || opacity <= 0) return;
     final paint = Paint()
-      ..shader = ImageShader(img, TileMode.repeated, TileMode.repeated, Matrix4.identity().storage)
+      // Échelle 0,6 : grain plus serré, qui reste fin sur les écrans haute densité.
+      ..shader = ImageShader(
+        img,
+        TileMode.repeated,
+        TileMode.repeated,
+        Matrix4.diagonal3Values(0.6, 0.6, 1).storage,
+        filterQuality: FilterQuality.medium,
+      )
       ..color = Colors.black.withValues(alpha: opacity.clamp(0.0, 1.0));
     if (clip != null) {
       canvas.drawRRect(clip, paint);

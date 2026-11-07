@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo/sdash-logo-1024.png" width="148" alt="Logo sDash : un « s » gravé dans du cuir capitonné"></p>
+
 # sDash
 
 Tableau de bord domotique pour tablette Android : lumières, chauffage, volets, prises,
@@ -122,6 +124,12 @@ disponible que sur la tablette.
 
 Pour brancher un autre système domotique (Jeedom, Domoticz, MQTT…), il suffit d'implémenter
 l'interface `HomeBackend` (`lib/data/home_backend.dart`).
+
+## Logo
+
+Cuir capitonné (cadre cousu, passepoil, panneau rembourré) avec le « s » gravé dans le cuir.
+Les sources vectorielles sont dans `docs/logo/` et se régénèrent avec
+`python3 tools/logo/generer_logo.py assets/fonts docs/logo`.
 
 ## Licences
 
