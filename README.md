@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/logo/sdash-logo-1024.png" width="148" alt="Logo sDash : un « s » gravé dans du cuir capitonné"></p>
+<p align="center"><img src="docs/logo/sdash-logo-1024.png" width="148" alt="Logo sDash : un S blanc terminé par un point, sur fond orange"></p>
 
 # sDash
 
@@ -146,9 +146,14 @@ l'interface `HomeBackend` (`lib/data/home_backend.dart`).
 
 ## Logo
 
-Cuir capitonné (cadre cousu, passepoil, panneau rembourré) avec le « s » gravé dans le cuir.
+Un « S » tracé d'un seul trait, dont l'extrémité se détache en un point : une lumière
+allumée. À plat, deux couleurs, dans l'orange de l'application.
+
+![Logo sDash et ses déclinaisons](docs/logo/presentation.jpg)
+
 Les sources vectorielles sont dans `docs/logo/` et se régénèrent avec
-`python3 tools/logo/generer_logo.py assets/fonts docs/logo`.
+`python3 tools/logo/generer_logo.py assets/fonts docs/logo` (variantes de couleur :
+ajouter `ambre` ou `sombre`).
 
 ## Licences
 

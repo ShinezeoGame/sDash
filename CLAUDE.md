@@ -21,7 +21,8 @@
   le mode démo (`DemoBackend`) est la source par défaut.
 - L'APK est produit par `.github/workflows/build-apk.yml` (artefact `sdash-apk`) et publié
   en Release (`sdash.apk`) à chaque envoi sur la branche par défaut.
-- Logo choisi par l'utilisateur (conservé malgré l'interface à plat) : cuir capitonné,
-  « s » gravé (pas cousu, pas de verre).
+- Logo (l'utilisateur a demandé de remplacer l'ancien logo en cuir par « un truc moderne ») :
+  « S » géométrique blanc terminé par un point ambre, sur fond orange `#C2571A`, à plat.
   Source : `tools/logo/generer_logo.py` → `docs/logo/*.svg` ; les PNG (mipmaps Android,
-  icônes web, `assets/branding/logo.png`) sont des exports de ces SVG.
+  icônes web, `assets/branding/logo.png`) sont des exports de ces SVG. Le fond de l'icône
+  adaptative Android est la couleur `sdash_icon_background` (`values/colors.xml`).
