@@ -3,8 +3,8 @@
 # sDash
 
 Tableau de bord domotique pour tablette Android : lumières, chauffage, volets, prises,
-scènes et réveil des ordinateurs, dans une interface en cuir surpiqué aux tons cognac
-(ou, au choix, en verre dépoli).
+scènes et réveil des ordinateurs, dans une interface claire, lisible de loin et pensée
+pour que chaque action se fasse en un geste.
 
 <p align="center">
   <a href="https://github.com/ShinezeoGame/sDash/releases/latest/download/sdash.apk"><img alt="Télécharger la dernière version (APK Android)" src="https://img.shields.io/badge/T%C3%A9l%C3%A9charger-la%20derni%C3%A8re%20version-F0A257?style=for-the-badge&logo=android&logoColor=white&labelColor=3B2516"></a>
@@ -13,33 +13,40 @@ scènes et réveil des ordinateurs, dans une interface en cuir surpiqué aux ton
 
 ![Accueil de sDash](docs/captures/accueil.jpg)
 
-| Chauffage | Lumières |
+| Thème sombre | Chauffage |
 | --- | --- |
-| ![Page chauffage](docs/captures/chauffage.jpg) | ![Page lumières](docs/captures/lumieres.jpg) |
+| ![Accueil en thème sombre](docs/captures/accueil-sombre.jpg) | ![Page chauffage](docs/captures/chauffage.jpg) |
 
-<details>
-<summary>Le même tableau de bord en style « verre dépoli »</summary>
-
-![Accueil en style verre](docs/captures/accueil-verre.jpg)
-
-</details>
+| Lumières | Volets |
+| --- | --- |
+| ![Page lumières](docs/captures/lumieres.jpg) | ![Page volets](docs/captures/volets.jpg) |
 
 ## Fonctionnalités
 
-- **Accueil** : tout tient sur un écran de tablette en paysage (thermostat, lumières par pièce,
-  volets, scènes, ordinateurs, consommation de la semaine). L'interface se réorganise en portrait.
-- **Lumières** : interrupteur par lampe et par pièce, variateur de luminosité, « tout éteindre ».
-- **Chauffage** : cadran circulaire à manipuler au doigt, réglage par pas de 0,5°, modes
+- **Accueil** : tout ce qui sert au quotidien tient sur un écran de tablette en paysage et
+  se commande en un geste — scènes, lumières par pièce, chauffage, volets, ordinateurs,
+  consommation de la semaine. La page se réorganise et défile sur les écrans plus petits.
+- **L'état se lit d'un coup d'œil** : une tuile ambrée est allumée, une tuile neutre est
+  éteinte. Toucher la tuile bascule l'appareil.
+- **Lumières** : une tuile par lampe, curseur de luminosité, interrupteur par pièce,
+  « tout allumer » / « tout éteindre ».
+- **Chauffage** : gros boutons − et + (pas de 0,5°), température mesurée, modes
   Confort / Éco / Hors-gel / Arrêt.
-- **Volets** : glissez sur la fenêtre pour choisir la position, ou ouvrir / stop / fermer.
+- **Volets** : boutons monter / stop / descendre comme sur un interrupteur mural ; sur la
+  page Volets, faites glisser le volet dessiné pour choisir une position précise.
 - **Appareils** : prises connectées, scènes, et ordinateurs (allumage par Wake-on-LAN,
   état en ligne, extinction facultative).
-- **Deux matières** (Réglages → Affichage) : **cuir**, par défaut (pièces de cuir rembourrées
-  et surpiquées, interrupteurs à bouton laiton, états actifs en cuir fauve), ou **verre**
-  dépoli sur fond de lumières chaudes.
-- **Tablette murale** : écran toujours allumé, plein écran, effet verre allégé pour les
-  tablettes peu puissantes.
+- **Thème clair ou sombre** (Réglages → Affichage) : automatique selon la tablette par
+  défaut, donc clair le jour et sombre la nuit si la tablette est réglée ainsi.
+- **Tablette murale** : écran toujours allumé et plein écran.
 - **Mode démo** : une maison simulée complète, active par défaut, pour tout essayer sans rien configurer.
+
+### Parti pris de l'interface
+
+Fonctionnelle avant tout : surfaces unies sans texture ni effet, texte grand et contrasté
+(niveau AA des règles d'accessibilité WCAG), zones tactiles d'au moins 44 px, une seule
+couleur d'accent, et les mêmes composants sur toutes les pages. Les tons chauds (crème,
+brun, ambre) rappellent le logo en cuir sans nuire à la lisibilité.
 
 ## Installer l'application sur la tablette
 
@@ -129,10 +136,10 @@ disponible que sur la tablette.
 | `lib/models/` | Modèles de la maison (pièces, appareils, état complet) |
 | `lib/data/` | Sources domotiques : démo, Home Assistant, réseau local (Wake-on-LAN), réglages |
 | `lib/state/` | `HomeController` : relie l'interface, les réglages et la source domotique |
-| `lib/ui/look.dart` | `AppLook` : matière active (cuir ou verre) fournie à tous les composants |
-| `lib/ui/widgets/` | Matériaux cuir et verre, grain, cadran, volet, curseurs, histogramme |
-| `lib/ui/cards/` | Cartes du tableau de bord |
-| `lib/ui/pages/` | Pages détaillées et réglages |
+| `lib/ui/theme.dart` | Couleurs par rôle (thèmes clair et sombre), styles de texte, dimensions |
+| `lib/ui/widgets/` | Composants : tuiles, boutons, interrupteur, curseur, volet, histogramme |
+| `lib/ui/pages/` | Accueil, pages détaillées et réglages |
+| `lib/ui/shell.dart` | Navigation (barre latérale sur tablette, barre du bas sur téléphone) |
 
 Pour brancher un autre système domotique (Jeedom, Domoticz, MQTT…), il suffit d'implémenter
 l'interface `HomeBackend` (`lib/data/home_backend.dart`).

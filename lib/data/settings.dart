@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum BackendKind { demo, homeAssistant }
 
-/// Matière de l'interface : cuir (opaque, surpiqué) ou verre dépoli.
-enum AppStyle { leather, glass }
+/// Thème de l'interface : automatique (suit le réglage de la tablette), clair ou sombre.
+enum AppThemeMode { auto, light, dark }
 
 /// Un ordinateur pilotable : soit en direct (Wake-on-LAN + ping depuis la tablette),
 /// soit via une entité Home Assistant (ex. `switch.pc_bureau`).
@@ -86,8 +86,7 @@ class AppSettings {
     this.haToken = '',
     this.energySensor = '',
     this.computers = const [],
-    this.style = AppStyle.leather,
-    this.reducedGlass = false,
+    this.theme = AppThemeMode.auto,
     this.keepScreenOn = true,
     this.immersive = true,
   });
@@ -101,10 +100,7 @@ class AppSettings {
   final String energySensor;
   final List<ComputerConfig> computers;
 
-  final AppStyle style;
-
-  /// Désactive le flou d'arrière-plan pour les tablettes peu puissantes (style verre).
-  final bool reducedGlass;
+  final AppThemeMode theme;
   final bool keepScreenOn;
   final bool immersive;
 
@@ -126,8 +122,7 @@ class AppSettings {
     String? haToken,
     String? energySensor,
     List<ComputerConfig>? computers,
-    AppStyle? style,
-    bool? reducedGlass,
+    AppThemeMode? theme,
     bool? keepScreenOn,
     bool? immersive,
   }) => AppSettings(
@@ -137,8 +132,7 @@ class AppSettings {
     haToken: haToken ?? this.haToken,
     energySensor: energySensor ?? this.energySensor,
     computers: computers ?? this.computers,
-    style: style ?? this.style,
-    reducedGlass: reducedGlass ?? this.reducedGlass,
+    theme: theme ?? this.theme,
     keepScreenOn: keepScreenOn ?? this.keepScreenOn,
     immersive: immersive ?? this.immersive,
   );
@@ -150,8 +144,7 @@ class AppSettings {
     'haToken': haToken,
     'energySensor': energySensor,
     'computers': computers.map((c) => c.toJson()).toList(),
-    'style': style.name,
-    'reducedGlass': reducedGlass,
+    'theme': theme.name,
     'keepScreenOn': keepScreenOn,
     'immersive': immersive,
   };
@@ -166,8 +159,7 @@ class AppSettings {
         .whereType<Map<String, dynamic>>()
         .map(ComputerConfig.fromJson)
         .toList(),
-    style: AppStyle.values.firstWhere((v) => v.name == json['style'], orElse: () => AppStyle.leather),
-    reducedGlass: json['reducedGlass'] as bool? ?? false,
+    theme: AppThemeMode.values.firstWhere((v) => v.name == json['theme'], orElse: () => AppThemeMode.auto),
     keepScreenOn: json['keepScreenOn'] as bool? ?? true,
     immersive: json['immersive'] as bool? ?? true,
   );

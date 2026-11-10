@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Écran de lancement : fond brun et médaillon sDash au centre. -->
+<!-- Écran de lancement : fond du thème (clair ou sombre) et icône sDash au centre. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/sdash_background" />
     <item
-        android:width="144dp"
-        android:height="144dp"
+        android:width="96dp"
+        android:height="96dp"
         android:gravity="center"
-        android:drawable="@mipmap/ic_launcher_foreground" />
+        android:drawable="@mipmap/ic_launcher" />
 </layer-list>

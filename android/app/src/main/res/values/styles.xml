@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Thème affiché pendant le démarrage du moteur Flutter. -->
-    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
         <item name="android:statusBarColor">@color/sdash_background</item>
         <item name="android:navigationBarColor">@color/sdash_background</item>
+        <item name="android:windowLightStatusBar">@bool/sdash_light_bars</item>
     </style>
     <!-- Thème de la fenêtre derrière l'interface Flutter. -->
-    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@color/sdash_background</item>
         <item name="android:statusBarColor">@color/sdash_background</item>
         <item name="android:navigationBarColor">@color/sdash_background</item>
+        <item name="android:windowLightStatusBar">@bool/sdash_light_bars</item>
     </style>
 </resources>

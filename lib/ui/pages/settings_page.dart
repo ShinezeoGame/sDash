@@ -5,9 +5,8 @@ import '../../data/network/wake_on_lan.dart';
 import '../../data/settings.dart';
 import '../../state/home_scope.dart';
 import '../theme.dart';
-import '../widgets/common.dart';
 import '../widgets/controls.dart';
-import '../widgets/surface.dart';
+import '../widgets/tiles.dart';
 import 'page_scaffold.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -46,6 +45,7 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
+  /// Vrai si les champs de saisie diffèrent des réglages enregistrés.
   bool _isDirty(AppSettings s) =>
       _name.text.trim() != s.userName ||
       _url.text.trim() != s.haUrl ||
@@ -111,6 +111,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final home = HomeScope.of(context);
     final settings = home.settings;
+    final c = context.colors;
+    final t = context.text;
+    final dirty = _isDirty(settings);
     final link = home.link;
     final linkText =
         link.message ??
@@ -120,29 +123,20 @@ class _SettingsPageState extends State<SettingsPage> {
           LinkState.offline => 'hors ligne',
         };
 
-    return DetailPage(
+    return AppPage(
       title: 'Réglages',
-      subtitle: 'Connexion, ordinateurs et affichage',
-      maxWidth: 920,
+      subtitle: dirty ? 'Modifications non enregistrées' : 'Connexion, ordinateurs et affichage',
+      maxWidth: 860,
       actions: [
-        PillButton(
+        AppButton(
           label: 'Enregistrer',
           icon: Icons.check_rounded,
-          primary: _isDirty(settings),
-          onPressed: _isDirty(settings) ? _save : null,
+          kind: ButtonKind.primary,
+          onPressed: dirty ? _save : null,
         ),
       ],
       children: [
-        _Section(
-          title: 'Profil',
-          icon: Icons.person_rounded,
-          child: TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Votre prénom', hintText: 'Affiché dans le message d’accueil'),
-          ),
-        ),
-        _Section(
+        _Panel(
           title: 'Connexion domotique',
           icon: Icons.hub_rounded,
           child: Column(
@@ -150,20 +144,22 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               Align(
                 alignment: Alignment.centerLeft,
-                child: PillSelector<BackendKind>(
-                  values: BackendKind.values,
-                  selected: _backend,
-                  labelOf: (b) => b == BackendKind.demo ? 'Maison de démo' : 'Home Assistant',
-                  iconOf: (b) => b == BackendKind.demo ? Icons.auto_awesome_rounded : Icons.home_rounded,
-                  onSelected: (b) => setState(() => _backend = b),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Segmented<BackendKind>(
+                    values: BackendKind.values,
+                    selected: _backend,
+                    labelOf: (b) => b == BackendKind.demo ? 'Maison de démo' : 'Home Assistant',
+                    onSelected: (b) => setState(() => _backend = b),
+                  ),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               if (_backend == BackendKind.demo)
-                const Text(
+                Text(
                   'Le mode démo simule une maison complète (lumières, chauffage, volets, ordinateurs) '
                   'pour découvrir sDash sans rien configurer.',
-                  style: AppText.body,
+                  style: t.secondary,
                 )
               else ...[
                 TextField(
@@ -183,8 +179,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   enableSuggestions: false,
                   decoration: InputDecoration(
                     labelText: 'Jeton d’accès longue durée',
-                    helperText: 'Home Assistant → Profil → Sécurité → Jetons d’accès longue durée',
+                    helperText: 'Dans Home Assistant : Profil → Sécurité → Jetons d’accès longue durée',
                     suffixIcon: IconButton(
+                      tooltip: _showToken ? 'Masquer le jeton' : 'Afficher le jeton',
                       icon: Icon(_showToken ? Icons.visibility_off_rounded : Icons.visibility_rounded),
                       onPressed: () => setState(() => _showToken = !_showToken),
                     ),
@@ -201,19 +198,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
               ],
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   StatusDot(
                     color: switch (link.state) {
-                      LinkState.online => Palette.sage,
-                      LinkState.connecting => Palette.amber,
-                      LinkState.offline => Palette.rose,
+                      LinkState.online => c.success,
+                      LinkState.connecting => c.accent,
+                      LinkState.offline => c.danger,
                     },
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text('${home.backendLabel} — $linkText', style: AppText.label)),
-                  PillButton(
+                  Expanded(child: Text('${home.backendLabel} — $linkText', style: t.secondary)),
+                  const SizedBox(width: 10),
+                  AppButton(
                     label: 'Reconnecter',
                     icon: Icons.refresh_rounded,
                     compact: true,
@@ -224,59 +222,60 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           ),
         ),
-        _Section(
+        _Panel(
           title: 'Ordinateurs',
           icon: Icons.desktop_windows_rounded,
-          trailing: PillButton(
+          trailing: AppButton(
             label: 'Ajouter',
             icon: Icons.add_rounded,
             compact: true,
             onPressed: () => _editComputer(null),
           ),
           child: settings.computers.isEmpty
-              ? const Text(
-                  'Ajoutez un PC pour l’allumer à distance par Wake-on-LAN (adresse MAC), '
+              ? Text(
+                  'Ajoutez un ordinateur pour l’allumer à distance par Wake-on-LAN (adresse MAC), '
                   'ou via une entité Home Assistant (ex. switch.pc_bureau).',
-                  style: AppText.body,
+                  style: t.secondary,
                 )
               : Column(
                   children: [
-                    for (final c in settings.computers)
+                    for (final computer in settings.computers)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
-                            const IconOrb(icon: Icons.desktop_windows_rounded, size: 40),
-                            const SizedBox(width: 14),
+                            const IconBadge(icon: Icons.desktop_windows_rounded),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(c.name, style: AppText.subtitle.copyWith(fontSize: 16)),
+                                  Text(computer.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.itemTitle),
                                   Text(
-                                    c.usesHomeAssistant
-                                        ? 'Home Assistant · ${c.haEntity}'
+                                    computer.usesHomeAssistant
+                                        ? 'Home Assistant · ${computer.haEntity}'
                                         : [
-                                            if (c.mac.isNotEmpty) c.mac.toUpperCase(),
-                                            if (c.host.isNotEmpty) c.host,
+                                            if (computer.mac.isNotEmpty) computer.mac.toUpperCase(),
+                                            if (computer.host.isNotEmpty) computer.host,
                                           ].join(' · '),
-                                    style: AppText.label,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: t.secondary,
                                   ),
                                 ],
                               ),
                             ),
-                            SurfaceIconButton(
+                            const SizedBox(width: 10),
+                            SquareButton(
                               icon: Icons.edit_rounded,
-                              size: 40,
-                              tooltip: 'Modifier',
-                              onPressed: () => _editComputer(c),
+                              tooltip: 'Modifier ${computer.name}',
+                              onPressed: () => _editComputer(computer),
                             ),
                             const SizedBox(width: 8),
-                            SurfaceIconButton(
+                            SquareButton(
                               icon: Icons.delete_outline_rounded,
-                              size: 40,
-                              tooltip: 'Supprimer',
-                              onPressed: () => _deleteComputer(c),
+                              tooltip: 'Supprimer ${computer.name}',
+                              onPressed: () => _deleteComputer(computer),
                             ),
                           ],
                         ),
@@ -284,66 +283,85 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                 ),
         ),
-        _Section(
+        _Panel(
           title: 'Affichage',
           icon: Icons.palette_rounded,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Matière', style: AppText.subtitle),
-                          SizedBox(height: 2),
-                          Text('Cuir surpiqué ou verre dépoli', style: AppText.label),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 300,
-                      child: SegmentedPills<AppStyle>(
-                        values: AppStyle.values,
-                        selected: settings.style,
-                        labelOf: (v) => v == AppStyle.leather ? 'Cuir' : 'Verre',
-                        iconOf: (v) => v == AppStyle.leather ? Icons.texture_rounded : Icons.blur_on_rounded,
-                        onSelected: (v) => home.updateSettings(home.settings.copyWith(style: v)),
-                      ),
-                    ),
-                  ],
+              _SettingRow(
+                title: 'Thème',
+                subtitle: 'Auto suit le mode clair ou sombre de la tablette',
+                wide: true,
+                control: SizedBox(
+                  width: 330,
+                  child: Segmented<AppThemeMode>(
+                    values: AppThemeMode.values,
+                    selected: settings.theme,
+                    labelOf: (m) => switch (m) {
+                      AppThemeMode.auto => 'Auto',
+                      AppThemeMode.light => 'Clair',
+                      AppThemeMode.dark => 'Sombre',
+                    },
+                    iconOf: (m) => switch (m) {
+                      AppThemeMode.auto => Icons.brightness_auto_rounded,
+                      AppThemeMode.light => Icons.light_mode_rounded,
+                      AppThemeMode.dark => Icons.dark_mode_rounded,
+                    },
+                    onSelected: (m) => home.updateSettings(home.settings.copyWith(theme: m)),
+                  ),
                 ),
               ),
-              if (settings.style == AppStyle.glass)
-                _ToggleRow(
-                  title: 'Effet verre allégé',
-                  subtitle: 'Désactive le flou d’arrière-plan sur les tablettes peu puissantes',
-                  value: settings.reducedGlass,
-                  onChanged: (v) => home.updateSettings(home.settings.copyWith(reducedGlass: v)),
-                ),
-              _ToggleRow(
+              _SettingRow(
                 title: 'Garder l’écran allumé',
-                subtitle: 'Idéal pour une tablette fixée au mur',
-                value: settings.keepScreenOn,
-                onChanged: (v) => home.updateSettings(home.settings.copyWith(keepScreenOn: v)),
+                subtitle: 'Pour une tablette fixée au mur',
+                control: AppSwitch(
+                  label: 'Garder l’écran allumé',
+                  value: settings.keepScreenOn,
+                  onChanged: (v) => home.updateSettings(home.settings.copyWith(keepScreenOn: v)),
+                ),
               ),
-              _ToggleRow(
+              _SettingRow(
                 title: 'Plein écran',
-                subtitle: 'Masque les barres système (glisser depuis le bord pour les afficher)',
-                value: settings.immersive,
-                onChanged: (v) => home.updateSettings(home.settings.copyWith(immersive: v)),
+                subtitle: 'Masque les barres du système ; glissez depuis le bord pour les revoir',
+                control: AppSwitch(
+                  label: 'Plein écran',
+                  value: settings.immersive,
+                  onChanged: (v) => home.updateSettings(home.settings.copyWith(immersive: v)),
+                ),
               ),
             ],
           ),
         ),
-        const _Section(
+        _Panel(
+          title: 'Profil',
+          icon: Icons.person_rounded,
+          child: TextField(
+            controller: _name,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              labelText: 'Votre prénom',
+              helperText: 'Affiché dans le message d’accueil',
+            ),
+          ),
+        ),
+        _Panel(
           title: 'À propos',
           icon: Icons.info_outline_rounded,
-          child: Text(
-            'sDash 1.0 — tableau de bord domotique pour tablette.\nPolice Outfit sous licence SIL Open Font License 1.1.',
-            style: AppText.body,
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset('assets/branding/logo.png', width: 52, height: 52, semanticLabel: 'Logo sDash'),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'sDash — tableau de bord domotique pour tablette.\n'
+                  'Police Outfit sous licence SIL Open Font License 1.1.',
+                  style: t.secondary,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -351,8 +369,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.icon, required this.child, this.trailing});
+class _Panel extends StatelessWidget {
+  const _Panel({required this.title, required this.icon, required this.child, this.trailing});
 
   final String title;
   final IconData icon;
@@ -362,20 +380,23 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: SurfaceCard(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Tile(
+        radius: Dim.panelRadius,
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Icon(icon, color: Palette.amber, size: 22),
+                Icon(icon, size: 22, color: context.colors.accent),
                 const SizedBox(width: 12),
-                Expanded(child: Text(title, style: AppText.title)),
+                Expanded(child: Text(title, style: context.text.sectionTitle)),
                 ?trailing,
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             child,
           ],
         ),
@@ -384,38 +405,53 @@ class _Section extends StatelessWidget {
   }
 }
 
-class _ToggleRow extends StatelessWidget {
-  const _ToggleRow({required this.title, required this.subtitle, required this.value, required this.onChanged});
+/// Ligne de réglage : intitulé et explication à gauche, commande à droite.
+class _SettingRow extends StatelessWidget {
+  const _SettingRow({required this.title, required this.subtitle, required this.control, this.wide = false});
 
   final String title;
   final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final Widget control;
+
+  /// Commande large : passe sous le texte quand la place manque.
+  final bool wide;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.text;
+    final texts = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(title, style: t.itemTitle),
+        const SizedBox(height: 2),
+        Text(subtitle, style: t.secondary),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppText.subtitle.copyWith(fontSize: 16)),
-                const SizedBox(height: 2),
-                Text(subtitle, style: AppText.label),
-              ],
-            ),
-          ),
-          GlowToggle(value: value, onChanged: onChanged),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (wide && constraints.maxWidth < 620) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [texts, const SizedBox(height: 10), control],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: texts),
+              const SizedBox(width: 16),
+              control,
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-/// Formulaire d'ajout / modification d'un ordinateur.
+/// Formulaire d'ajout ou de modification d'un ordinateur.
 class _ComputerDialog extends StatefulWidget {
   const _ComputerDialog({this.initial});
 

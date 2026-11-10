@@ -86,9 +86,9 @@ void main() {
       expect(loaded.userName, 'Alex');
       expect(loaded.computers.single.mac, 'AA:BB:CC:DD:EE:FF');
       expect(loaded.backend, BackendKind.demo);
-      expect(loaded.style, AppStyle.leather, reason: 'le cuir est le style par défaut');
-      await store.save(loaded.copyWith(style: AppStyle.glass));
-      expect((await store.load()).style, AppStyle.glass);
+      expect(loaded.theme, AppThemeMode.auto, reason: 'le thème suit la tablette par défaut');
+      await store.save(loaded.copyWith(theme: AppThemeMode.dark));
+      expect((await store.load()).theme, AppThemeMode.dark);
       expect(loaded.needsReconnect(loaded.copyWith(userName: 'Sam')), isFalse);
       expect(loaded.needsReconnect(loaded.copyWith(backend: BackendKind.homeAssistant)), isTrue);
     });

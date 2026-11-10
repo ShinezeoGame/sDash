@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 12+ : écran de démarrage système aux couleurs de sDash. -->
+    <!-- Android 12+ : écran de démarrage système, clair ou sombre selon la tablette. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowSplashScreenBackground">@color/sdash_background</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="android:statusBarColor">@color/sdash_background</item>
         <item name="android:navigationBarColor">@color/sdash_background</item>
+        <item name="android:windowLightStatusBar">@bool/sdash_light_bars</item>
     </style>
+    <!-- Thème de la fenêtre derrière l'interface Flutter. -->
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">@color/sdash_background</item>
         <item name="android:statusBarColor">@color/sdash_background</item>
         <item name="android:navigationBarColor">@color/sdash_background</item>
+        <item name="android:windowLightStatusBar">@bool/sdash_light_bars</item>
     </style>
 </resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fond du thème sombre de l'application (voir lib/ui/theme.dart). -->
+    <color name="sdash_background">#FF16100C</color>
+    <!-- Barres système : icônes claires sur fond sombre. -->
+    <bool name="sdash_light_bars">false</bool>
+</resources>

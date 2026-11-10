@@ -3,12 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../data/home_backend.dart';
 import '../state/home_controller.dart';
 import '../state/home_scope.dart';
-import 'format.dart';
-import 'icons.dart';
-import 'look.dart';
 import 'navigation.dart';
 import 'pages/climate_page.dart';
 import 'pages/covers_page.dart';
@@ -17,11 +13,9 @@ import 'pages/devices_page.dart';
 import 'pages/lights_page.dart';
 import 'pages/settings_page.dart';
 import 'theme.dart';
-import 'widgets/ambient_background.dart';
-import 'widgets/common.dart';
-import 'widgets/surface.dart';
 
-/// Structure de l'application : rail de navigation, barre supérieure et page active.
+/// Structure de l'application : navigation (à gauche sur tablette, en bas sur
+/// téléphone) et page active.
 class Shell extends StatefulWidget {
   const Shell({super.key});
 
@@ -32,17 +26,6 @@ class Shell extends StatefulWidget {
 class _ShellState extends State<Shell> {
   AppSection _section = AppSection.dashboard;
   StreamSubscription<AppMessage>? _messages;
-  Timer? _clock;
-  DateTime _now = DateTime.now();
-
-  @override
-  void initState() {
-    super.initState();
-    _clock = Timer.periodic(const Duration(seconds: 10), (_) {
-      final now = DateTime.now();
-      if (now.minute != _now.minute) setState(() => _now = now);
-    });
-  }
 
   @override
   void didChangeDependencies() {
@@ -52,13 +35,13 @@ class _ShellState extends State<Shell> {
 
   @override
   void dispose() {
-    _clock?.cancel();
     _messages?.cancel();
     super.dispose();
   }
 
   void _showMessage(AppMessage message) {
     if (!mounted) return;
+    final c = context.colors;
     final wide = MediaQuery.sizeOf(context).width >= 700;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -70,7 +53,7 @@ class _ShellState extends State<Shell> {
             children: [
               Icon(
                 message.isError ? Icons.error_outline_rounded : Icons.check_circle_rounded,
-                color: message.isError ? Palette.rose : Palette.sage,
+                color: message.isError ? c.danger : c.success,
               ),
               const SizedBox(width: 12),
               Expanded(child: Text(message.text)),
@@ -98,82 +81,51 @@ class _ShellState extends State<Shell> {
   @override
   Widget build(BuildContext context) {
     final home = HomeScope.of(context);
-    final size = MediaQuery.sizeOf(context);
-    final wide = size.width >= 700;
+    final wide = MediaQuery.sizeOf(context).width >= 700;
+    final dark = Theme.of(context).brightness == Brightness.dark;
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _TopBar(now: _now, compact: !wide),
-        SizedBox(height: wide ? 18 : 12),
-        Expanded(
-          child: !home.ready
-              ? const Center(child: CircularProgressIndicator(color: Palette.amber))
-              : AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 380),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween(begin: const Offset(0, 0.015), end: Offset.zero).animate(animation),
-                      child: child,
-                    ),
-                  ),
-                  child: KeyedSubtree(key: ValueKey(_section), child: _page(_section)),
-                ),
-        ),
-      ],
+    final page = Padding(
+      padding: wide ? const EdgeInsets.fromLTRB(24, 20, 24, 0) : const EdgeInsets.fromLTRB(14, 12, 14, 0),
+      child: !home.ready
+          ? const Center(child: CircularProgressIndicator())
+          : AnimatedSwitcher(
+              duration: const Duration(milliseconds: 160),
+              layoutBuilder: (current, previous) => Stack(fit: StackFit.expand, children: [...previous, ?current]),
+              child: KeyedSubtree(key: ValueKey(_section), child: _page(_section)),
+            ),
     );
 
-    return Scaffold(
-      backgroundColor: Palette.espresso,
-      body: AmbientBackground(
-        child: SafeArea(
-          child: BackdropGroup(
-            child: ShellNav(
-              current: _section,
-              goTo: _go,
-              child: Padding(
-                padding: EdgeInsets.all(wide ? 20 : 12),
-                child: wide
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _NavRail(selected: _section, onSelect: _go),
-                          const SizedBox(width: 20),
-                          Expanded(child: content),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          Expanded(child: content),
-                          const SizedBox(height: 12),
-                          _BottomNav(selected: _section, onSelect: _go),
-                        ],
-                      ),
-              ),
-            ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Barres système assorties au thème quand le plein écran est désactivé.
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: context.colors.background,
+        systemNavigationBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+      ),
+      child: Scaffold(
+        body: SafeArea(
+          child: ShellNav(
+            current: _section,
+            goTo: _go,
+            child: wide
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _NavRail(selected: _section, onSelect: _go),
+                      Expanded(child: page),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      Expanded(child: page),
+                      _BottomNav(selected: _section, onSelect: _go),
+                    ],
+                  ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Logo extends StatelessWidget {
-  const _Logo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.45), blurRadius: 14, offset: const Offset(0, 5))],
-      ),
-      child: Image.asset('assets/branding/logo.png', filterQuality: FilterQuality.medium, semanticLabel: 'sDash'),
     );
   }
 }
@@ -186,94 +138,34 @@ class _NavRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final main = AppSection.values.where((s) => s != AppSection.settings);
-    return SurfaceCard(
-      stitched: true,
-      radius: 34,
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
-      child: SizedBox(
-        width: 70,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      const _Logo(),
-                      const SizedBox(height: 26),
-                      for (final s in main) ...[
-                        _NavItem(
-                          key: ValueKey('nav-${s.name}'),
-                          section: s,
-                          selected: s == selected,
-                          onTap: () => onSelect(s),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      const Spacer(),
-                      _NavItem(
-                        key: const ValueKey('nav-settings'),
-                        section: AppSection.settings,
-                        selected: selected == AppSection.settings,
-                        onTap: () => onSelect(AppSection.settings),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+    final c = context.colors;
+    Widget item(AppSection s) =>
+        _NavItem(key: ValueKey('nav-${s.name}'), section: s, selected: s == selected, onTap: () => onSelect(s));
+    return Container(
+      width: 96,
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border(right: BorderSide(color: c.border)),
       ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({super.key, required this.section, required this.selected, required this.onTap});
-
-  final AppSection section;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: section.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeOutCubic,
-                width: 56,
-                height: 40,
-                decoration: selected
-                    ? AppLook.of(context).active(radius: 16)
-                    : BoxDecoration(borderRadius: BorderRadius.circular(16)),
-                child: Icon(section.icon, size: 22, color: selected ? Palette.onWarm : Palette.taupe),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                // Toutes les entrées ont la même largeur, quelle que soit la longueur du libellé.
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final s in AppSection.values.where((s) => s != AppSection.settings)) ...[
+                    item(s),
+                    const SizedBox(height: 6),
+                  ],
+                  const Spacer(),
+                  item(AppSection.settings),
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                section.label,
-                maxLines: 1,
-                overflow: TextOverflow.fade,
-                softWrap: false,
-                style: AppText.caption.copyWith(
-                  fontSize: 11.5,
-                  color: selected ? Palette.cream : Palette.taupe,
-                  fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -289,11 +181,14 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SurfaceCard(
-      radius: 28,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+    final c = context.colors;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border(top: BorderSide(color: c.border)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           for (final s in AppSection.values)
             Expanded(
@@ -310,101 +205,50 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-class _TopBar extends StatelessWidget {
-  const _TopBar({required this.now, required this.compact});
+class _NavItem extends StatelessWidget {
+  const _NavItem({super.key, required this.section, required this.selected, required this.onTap});
 
-  final DateTime now;
-  final bool compact;
+  final AppSection section;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final home = HomeScope.of(context);
-    final state = home.state;
-    final name = home.settings.userName.trim();
-    final date = formatLongDate(now);
-    final summary = [
-      if (state.lights.isNotEmpty)
-        state.lightsOn == 0
-            ? 'lumières éteintes'
-            : '${plural(state.lightsOn, 'lumière')} allumée${state.lightsOn > 1 ? 's' : ''}',
-      if (state.covers.isNotEmpty) '${plural(state.coversOpen, 'volet')} ouvert${state.coversOpen > 1 ? 's' : ''}',
-    ].join(' · ');
-    final link = home.link;
-    final linkColor = switch (link.state) {
-      LinkState.online => Palette.sage,
-      LinkState.connecting => Palette.amber,
-      LinkState.offline => Palette.rose,
-    };
-    final linkText = switch (link.state) {
-      LinkState.online => home.backendLabel,
-      LinkState.connecting => 'Connexion…',
-      LinkState.offline => 'Hors ligne',
-    };
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                name.isEmpty ? greetingFor(now) : '${greetingFor(now)}, $name',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: compact ? AppText.greeting.copyWith(fontSize: 24) : AppText.greeting,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                [date[0].toUpperCase() + date.substring(1), if (summary.isNotEmpty && !compact) summary].join(' · '),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppText.label.copyWith(fontSize: 15),
-              ),
-            ],
-          ),
-        ),
-        if (!compact && state.outdoorTemp != null) ...[
-          SurfacePill(
-            child: Row(
+    final c = context.colors;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: section.label,
+      excludeSemantics: true,
+      child: Material(
+        color: selected ? c.accentSoft : c.accentSoft.withValues(alpha: 0),
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 2),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(weatherIcon(state.weather), color: Palette.honey),
-                const SizedBox(width: 8),
-                Text(formatTemp(state.outdoorTemp), style: AppText.subtitle.copyWith(fontSize: 15)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
-        if (!compact && state.indoorTemp != null) ...[
-          SurfacePill(
-            child: Row(
-              children: [
-                const Icon(Icons.home_rounded, color: Palette.honey),
-                const SizedBox(width: 8),
-                Text(formatTemp(state.indoorTemp), style: AppText.subtitle.copyWith(fontSize: 15)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-        ],
-        Tooltip(
-          message: link.message ?? linkText,
-          child: SurfacePill(
-            onTap: link.state == LinkState.offline ? home.reconnect : null,
-            child: Row(
-              children: [
-                StatusDot(color: linkColor),
-                const SizedBox(width: 9),
-                Text(linkText),
+                Icon(section.icon, size: 26, color: selected ? c.accent : c.textMuted),
+                const SizedBox(height: 4),
+                Text(
+                  section.label,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.fade,
+                  style: context.text.caption.copyWith(
+                    fontSize: 12.5,
+                    color: selected ? c.text : c.textMuted,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ),
         ),
-        SizedBox(width: compact ? 12 : 22),
-        Text(formatClock(now), style: compact ? AppText.clock.copyWith(fontSize: 30) : AppText.clock),
-      ],
+      ),
     );
   }
 }

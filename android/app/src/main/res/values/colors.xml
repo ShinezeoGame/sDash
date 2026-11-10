@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brun « espresso » du fond de l'application, pour éviter tout flash blanc au démarrage. -->
-    <color name="sdash_background">#FF160E09</color>
+    <!-- Fond du thème clair de l'application (voir lib/ui/theme.dart) ; la version
+         sombre est dans values-night. Évite tout flash de couleur au démarrage. -->
+    <color name="sdash_background">#FFF5F0E8</color>
+    <!-- Barres système : icônes sombres sur fond clair. -->
+    <bool name="sdash_light_bars">true</bool>
 </resources>

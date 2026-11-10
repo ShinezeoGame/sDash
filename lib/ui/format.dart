@@ -46,3 +46,9 @@ String greetingFor(DateTime date) {
 /// Accorde un mot au pluriel : `plural(2, 'lumière')` → `2 lumières`.
 String plural(int count, String singular, [String? pluralForm]) =>
     '$count ${count > 1 ? (pluralForm ?? '${singular}s') : singular}';
+
+/// « mercredi »
+String weekdayName(int weekday) => _weekdays[(weekday - 1) % 7];
+
+/// Met la première lettre en majuscule.
+String capitalize(String text) => text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);

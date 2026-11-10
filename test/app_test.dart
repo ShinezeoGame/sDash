@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,10 +7,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sdash/app.dart';
 import 'package:sdash/data/demo_backend.dart';
 import 'package:sdash/data/settings.dart';
+import 'package:sdash/models/home.dart';
 import 'package:sdash/state/home_controller.dart';
 import 'package:sdash/ui/navigation.dart';
 import 'package:sdash/ui/pages/climate_page.dart';
-import 'package:sdash/ui/widgets/thermostat_dial.dart';
+import 'package:sdash/ui/shell.dart';
+import 'package:sdash/ui/widgets/tiles.dart';
 
 /// Charge la vraie police pour que les mesures de texte correspondent à l'appareil.
 Future<void> loadOutfit() async {
@@ -74,16 +75,69 @@ void main() {
     });
   }
 
-  testWidgets('style verre : toutes les pages s’affichent sans débordement', (tester) async {
-    SharedPreferences.setMockInitialValues({'sdash.settings': '{"style":"glass"}'});
+  testWidgets('thème sombre : toutes les pages s’affichent sans débordement', (tester) async {
+    SharedPreferences.setMockInitialValues({'sdash.settings': '{"theme":"dark"}'});
     final controller = await pumpApp(tester, const Size(1280, 800));
-    expect(controller.settings.style, AppStyle.glass);
+    expect(controller.settings.theme, AppThemeMode.dark);
+    expect(Theme.of(tester.element(find.byType(Shell))).brightness, Brightness.dark);
     for (final section in AppSection.values) {
       await tester.tap(find.byKey(ValueKey('nav-${section.name}')));
       await tester.pump(const Duration(milliseconds: 450));
       await tester.pump(const Duration(milliseconds: 450));
       expect(tester.takeException(), isNull, reason: 'page ${section.label}');
     }
+    await tearDownApp(tester, controller);
+  });
+
+  testWidgets('thème automatique : clair par défaut', (tester) async {
+    final controller = await pumpApp(tester, const Size(1280, 800));
+    expect(controller.settings.theme, AppThemeMode.auto);
+    expect(Theme.of(tester.element(find.byType(Shell))).brightness, Brightness.light);
+    await tearDownApp(tester, controller);
+  });
+
+  testWidgets('accueil : un appui sur la tuile d’une pièce éteint ses lumières', (tester) async {
+    final controller = await pumpApp(tester, const Size(1280, 800));
+    bool kitchenOn() => controller.state.lights.any((l) => l.roomId == 'cuisine' && l.isOn);
+
+    expect(kitchenOn(), isTrue);
+    await tester.tap(find.widgetWithText(ToggleTile, 'Cuisine'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(kitchenOn(), isFalse);
+
+    await tester.tap(find.widgetWithText(ToggleTile, 'Cuisine'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(kitchenOn(), isTrue);
+
+    await tearDownApp(tester, controller);
+  });
+
+  testWidgets('accueil : les boutons − et + règlent la consigne du chauffage', (tester) async {
+    final controller = await pumpApp(tester, const Size(1280, 800));
+    double target() => controller.state.climates.firstWhere((c) => c.id == 'climate.salon').targetTemp;
+
+    expect(target(), 21.5);
+    await tester.tap(find.byTooltip('Augmenter Salon'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(target(), 22.0);
+    await tester.tap(find.byTooltip('Baisser Salon'));
+    await tester.tap(find.byTooltip('Baisser Salon'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(target(), 21.0);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tearDownApp(tester, controller);
+  });
+
+  testWidgets('accueil : les boutons d’un volet envoient la commande', (tester) async {
+    final controller = await pumpApp(tester, const Size(1280, 800));
+    CoverDevice cover() => controller.state.covers.firstWhere((c) => c.id == 'cover.chambre');
+
+    expect(cover().position, 0);
+    await tester.tap(find.byTooltip('Ouvrir Chambre'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(cover().motion, CoverMotion.opening);
+
     await tearDownApp(tester, controller);
   });
 
@@ -102,29 +156,21 @@ void main() {
     await tearDownApp(tester, controller);
   });
 
-  testWidgets('glisser sur le cadran règle la consigne sans faire défiler la page', (tester) async {
+  testWidgets('page Chauffage : réglage par paliers et changement de mode', (tester) async {
     final controller = await pumpApp(tester, const Size(1280, 800));
     await tester.tap(find.byKey(const ValueKey('nav-climate')));
     await tester.pump(const Duration(milliseconds: 450));
     await tester.pump(const Duration(milliseconds: 450));
+    ClimateDevice salon() => controller.state.climates.firstWhere((c) => c.id == 'climate.salon');
 
-    final dial = find.descendant(of: find.byType(ClimatePage), matching: find.byType(ThermostatDial)).first;
-    final box = tester.getRect(dial);
-    final radius = box.shortestSide / 2 * 0.8;
-    final center = box.center;
-    // Du point gauche du cercle (≈ 10,5°) jusqu'au sommet (milieu de la plage : 18,5°).
-    final gesture = await tester.startGesture(center + Offset(-radius, 0));
-    for (var a = 180; a <= 270; a += 10) {
-      final rad = a * 3.141592653589793 / 180;
-      await gesture.moveTo(center + Offset(radius * cos(rad), radius * sin(rad)));
-      await tester.pump(const Duration(milliseconds: 16));
-    }
-    await gesture.up();
+    await tester.tap(find.byTooltip('Augmenter Salon'));
     await tester.pump(const Duration(milliseconds: 100));
+    expect(salon().targetTemp, 22.0);
 
-    expect(controller.state.climates.firstWhere((c) => c.id == 'climate.salon').targetTemp, 18.5);
-    final scrollable = find.descendant(of: find.byType(ClimatePage), matching: find.byType(Scrollable)).first;
-    expect(tester.state<ScrollableState>(scrollable).position.pixels, 0);
+    final card = find.widgetWithText(ClimateCard, 'Salon');
+    await tester.tap(find.descendant(of: card, matching: find.text('Arrêt')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(salon().mode, ClimateMode.off);
 
     await tester.pump(const Duration(seconds: 1));
     await tearDownApp(tester, controller);
