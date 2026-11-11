@@ -283,6 +283,7 @@ HomeState mapHomeAssistant({
           },
           detail: c.host.isNotEmpty ? c.host : c.haEntity.trim(),
           canShutdown: haDomain(c.haEntity.trim()) != 'button' || c.haShutdownEntity.trim().isNotEmpty,
+          isServer: c.isServer,
         ),
   ];
 

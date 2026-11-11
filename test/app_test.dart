@@ -192,6 +192,29 @@ void main() {
     await tearDownApp(tester, controller);
   });
 
+  testWidgets('réglages : une entité d’extinction est refusée dans le champ « pour allumer »', (tester) async {
+    final controller = await pumpApp(tester, const Size(412, 915));
+    await tester.tap(find.byKey(const ValueKey('nav-settings')));
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.ensureVisible(find.text('Ajouter'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('Ajouter'));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nom'), 'NAS');
+    final turnOn = find.widgetWithText(TextFormField, 'Entité Home Assistant pour allumer (facultatif)');
+    await tester.ensureVisible(turnOn);
+    await tester.enterText(turnOn, 'button.nas_shut_down');
+    await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.text('Enregistrer')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Elle éteint la machine : mettez-la dans « pour éteindre »'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsOneWidget, reason: 'le formulaire reste ouvert');
+    expect(tester.takeException(), isNull);
+
+    await tearDownApp(tester, controller);
+  });
+
   testWidgets('page Chauffage : réglage par paliers et changement de mode', (tester) async {
     final controller = await pumpApp(tester, const Size(1280, 800));
     await tester.tap(find.byKey(const ValueKey('nav-climate')));

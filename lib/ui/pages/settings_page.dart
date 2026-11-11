@@ -496,6 +496,11 @@ class _ComputerDialogState extends State<_ComputerDialog> {
     );
   }
 
+  static String? _entityFormat(String? v) {
+    final e = (v ?? '').trim();
+    return e.isNotEmpty && !RegExp(r'^[a-z_]+\.[a-z0-9_]+$').hasMatch(e) ? 'Format attendu : domaine.nom' : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     const gap = SizedBox(height: 14);
@@ -521,11 +526,12 @@ class _ComputerDialogState extends State<_ComputerDialog> {
                   decoration: const InputDecoration(
                     labelText: 'Adresse MAC (Wake-on-LAN)',
                     hintText: 'AA:BB:CC:DD:EE:FF',
+                    helperText: 'Pour l’allumer à distance',
                   ),
                   validator: (v) {
                     final mac = (v ?? '').trim();
                     if (mac.isEmpty && _entity.text.trim().isEmpty) {
-                      return 'Indiquez une adresse MAC ou une entité Home Assistant';
+                      return 'Indiquez une adresse MAC ou une entité Home Assistant pour allumer';
                     }
                     if (mac.isNotEmpty && !isValidMac(mac)) return 'Adresse MAC invalide';
                     return null;
@@ -539,15 +545,19 @@ class _ComputerDialogState extends State<_ComputerDialog> {
                   decoration: const InputDecoration(
                     labelText: 'Adresse IP (facultatif)',
                     hintText: '192.168.1.42',
-                    helperText: 'Permet d’afficher si la machine est allumée',
+                    helperText: 'Pour savoir s’il est allumé',
                   ),
                 ),
                 gap,
                 TextFormField(
-                  controller: _broadcast,
+                  controller: _shutdownEntity,
                   autocorrect: false,
-                  keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(labelText: 'Adresse de diffusion', hintText: '255.255.255.255'),
+                  decoration: const InputDecoration(
+                    labelText: 'Entité Home Assistant pour éteindre (facultatif)',
+                    hintText: 'button.nas_shut_down',
+                    helperText: 'Bouton ou script qui l’éteint',
+                  ),
+                  validator: _entityFormat,
                 ),
                 gap,
                 TextFormField(
@@ -557,7 +567,7 @@ class _ComputerDialogState extends State<_ComputerDialog> {
                   decoration: const InputDecoration(
                     labelText: 'URL d’extinction (facultatif)',
                     hintText: 'http://192.168.1.42:8000/shutdown',
-                    helperText: 'Appelée en POST pour éteindre la machine',
+                    helperText: 'Autre moyen de l’éteindre : URL appelée en POST',
                   ),
                   validator: (v) {
                     final url = (v ?? '').trim();
@@ -573,32 +583,28 @@ class _ComputerDialogState extends State<_ComputerDialog> {
                   controller: _entity,
                   autocorrect: false,
                   decoration: const InputDecoration(
-                    labelText: 'Entité Home Assistant (facultatif)',
+                    labelText: 'Entité Home Assistant pour allumer (facultatif)',
                     hintText: 'switch.pc_bureau',
-                    helperText: 'Prioritaire en mode Home Assistant',
+                    helperText: 'Interrupteur qui l’allume. Inutile pour un NAS.',
                   ),
                   validator: (v) {
                     final e = (v ?? '').trim();
-                    return e.isNotEmpty && !RegExp(r'^[a-z_]+\.[a-z0-9_]+$').hasMatch(e)
-                        ? 'Format attendu : domaine.nom'
-                        : null;
+                    if (isShutdownEntity(e)) {
+                      return 'Elle éteint la machine : mettez-la dans « pour éteindre »';
+                    }
+                    return _entityFormat(e);
                   },
                 ),
                 gap,
                 TextFormField(
-                  controller: _shutdownEntity,
+                  controller: _broadcast,
                   autocorrect: false,
+                  keyboardType: TextInputType.url,
                   decoration: const InputDecoration(
-                    labelText: 'Entité Home Assistant pour éteindre (facultatif)',
-                    hintText: 'button.nas_shut_down',
-                    helperText: 'Bouton ou script qui éteint la machine (NAS Synology, HASS.Agent…)',
+                    labelText: 'Adresse de diffusion',
+                    hintText: '255.255.255.255',
+                    helperText: 'À changer seulement si le réveil ne fonctionne pas',
                   ),
-                  validator: (v) {
-                    final e = (v ?? '').trim();
-                    return e.isNotEmpty && !RegExp(r'^[a-z_]+\.[a-z0-9_]+$').hasMatch(e)
-                        ? 'Format attendu : domaine.nom'
-                        : null;
-                  },
                 ),
               ],
             ),

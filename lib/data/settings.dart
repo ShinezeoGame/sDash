@@ -44,6 +44,9 @@ class ComputerConfig {
 
   bool get usesHomeAssistant => haEntity.trim().isNotEmpty;
 
+  /// NAS ou serveur, d'après son nom (icône dédiée).
+  bool get isServer => RegExp(r'\b(nas|serveur|server|srv)\b', caseSensitive: false).hasMatch(name);
+
   ComputerConfig copyWith({
     String? name,
     String? mac,
@@ -74,16 +77,37 @@ class ComputerConfig {
     'haShutdownEntity': haShutdownEntity,
   };
 
-  factory ComputerConfig.fromJson(Map<String, dynamic> json) => ComputerConfig(
-    id: json['id'] as String? ?? DateTime.now().microsecondsSinceEpoch.toString(),
-    name: json['name'] as String? ?? 'Ordinateur',
-    mac: json['mac'] as String? ?? '',
-    host: json['host'] as String? ?? '',
-    broadcast: json['broadcast'] as String? ?? '255.255.255.255',
-    shutdownUrl: json['shutdownUrl'] as String? ?? '',
-    haEntity: json['haEntity'] as String? ?? '',
-    haShutdownEntity: json['haShutdownEntity'] as String? ?? '',
-  );
+  factory ComputerConfig.fromJson(Map<String, dynamic> json) {
+    var entity = json['haEntity'] as String? ?? '';
+    var shutdownEntity = json['haShutdownEntity'] as String? ?? '';
+    // Une entité d'extinction saisie dans le champ « pour allumer » éteindrait la machine
+    // au lieu de l'allumer : elle est remise à sa place.
+    if (isShutdownEntity(entity) && shutdownEntity.trim().isEmpty) {
+      shutdownEntity = entity;
+      entity = '';
+    }
+    return ComputerConfig(
+      id: json['id'] as String? ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      name: json['name'] as String? ?? 'Ordinateur',
+      mac: json['mac'] as String? ?? '',
+      host: json['host'] as String? ?? '',
+      broadcast: json['broadcast'] as String? ?? '255.255.255.255',
+      shutdownUrl: json['shutdownUrl'] as String? ?? '',
+      haEntity: entity,
+      haShutdownEntity: shutdownEntity,
+    );
+  }
+}
+
+/// Vrai si l'entité Home Assistant est une commande d'extinction, de redémarrage ou de mise
+/// en veille (ex. `button.nas_shut_down`, `script.eteindre_pc`) : elle ne doit jamais servir
+/// à allumer une machine.
+bool isShutdownEntity(String entityId) {
+  final id = entityId.trim().toLowerCase();
+  if (!RegExp(r'^(button|input_button|script)\.').hasMatch(id)) return false;
+  return RegExp(
+    r'shut_?down|power_?off|turn_?off|eteindre|eteint|extinction|arret|reboot|restart|redemarr|veille|sleep|hibernat|suspend',
+  ).hasMatch(id);
 }
 
 class AppSettings {

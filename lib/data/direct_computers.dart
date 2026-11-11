@@ -45,6 +45,7 @@ class DirectComputers {
         state: _states[c.id] ?? PowerState.unknown,
         detail: c.host.isNotEmpty ? c.host : (c.mac.isNotEmpty ? c.mac.toUpperCase() : null),
         canShutdown: _canShutdown(c),
+        isServer: c.isServer,
       ),
   ];
 

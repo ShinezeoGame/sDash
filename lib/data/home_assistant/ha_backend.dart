@@ -363,6 +363,11 @@ class HomeAssistantBackend implements HomeBackend {
     final domain = haDomain(entity);
     final shutdown = config.haShutdownEntity.trim();
     if (!on && shutdown.isNotEmpty) return triggerEntity(shutdown);
+    if (on && isShutdownEntity(entity)) {
+      throw BackendException(
+        '« $entity » éteint la machine : indiquez-la dans « Entité Home Assistant pour éteindre » (Réglages).',
+      );
+    }
     if (domain == 'button') {
       if (!on) throw const BackendException('Aucune commande d’extinction configurée pour cet ordinateur.');
       return _service('button', 'press', entity);

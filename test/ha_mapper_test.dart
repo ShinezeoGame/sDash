@@ -210,6 +210,28 @@ void main() {
       expect(triggerService('switch.pc_bureau'), ('switch', 'turn_off'));
     });
 
+    test('une entité d’extinction n’est jamais utilisée pour allumer', () {
+      expect(isShutdownEntity('button.nas_shut_down'), isTrue);
+      expect(isShutdownEntity('button.nas_redemarrer'), isTrue);
+      expect(isShutdownEntity('script.eteindre_pc'), isTrue);
+      expect(isShutdownEntity('button.wake_pc_bureau'), isFalse);
+      expect(isShutdownEntity('switch.pc_bureau'), isFalse, reason: 'un interrupteur allume et éteint');
+
+      // Réglage enregistré avec l'entité dans le mauvais champ : remis à sa place au chargement.
+      final nas = ComputerConfig.fromJson({
+        'id': 'n',
+        'name': 'NAS',
+        'mac': '00:11:32:00:00:01',
+        'host': '192.168.1.39',
+        'haEntity': 'button.nas_shut_down',
+      });
+      expect(nas.haEntity, isEmpty);
+      expect(nas.haShutdownEntity, 'button.nas_shut_down');
+      expect(nas.usesHomeAssistant, isFalse, reason: 'état lu par l’adresse IP, allumage par Wake-on-LAN');
+      expect(nas.isServer, isTrue);
+      expect(const ComputerConfig(id: 'p', name: 'PC du salon').isServer, isFalse);
+    });
+
     test('un ordinateur Home Assistant avec entité d’extinction peut être éteint', () {
       final home = mapHomeAssistant(
         states: {...states, 'button.nas_wake': entity('button.nas_wake', 'unknown')},
