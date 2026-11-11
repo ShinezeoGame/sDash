@@ -18,6 +18,7 @@ class ComputerConfig {
     this.broadcast = '255.255.255.255',
     this.shutdownUrl = '',
     this.haEntity = '',
+    this.haShutdownEntity = '',
   });
 
   final String id;
@@ -38,6 +39,9 @@ class ComputerConfig {
   /// Entité Home Assistant optionnelle (prioritaire en mode Home Assistant).
   final String haEntity;
 
+  /// Entité Home Assistant déclenchée pour éteindre la machine (ex. `button.nas_shut_down`).
+  final String haShutdownEntity;
+
   bool get usesHomeAssistant => haEntity.trim().isNotEmpty;
 
   ComputerConfig copyWith({
@@ -47,6 +51,7 @@ class ComputerConfig {
     String? broadcast,
     String? shutdownUrl,
     String? haEntity,
+    String? haShutdownEntity,
   }) => ComputerConfig(
     id: id,
     name: name ?? this.name,
@@ -55,6 +60,7 @@ class ComputerConfig {
     broadcast: broadcast ?? this.broadcast,
     shutdownUrl: shutdownUrl ?? this.shutdownUrl,
     haEntity: haEntity ?? this.haEntity,
+    haShutdownEntity: haShutdownEntity ?? this.haShutdownEntity,
   );
 
   Map<String, dynamic> toJson() => {
@@ -65,6 +71,7 @@ class ComputerConfig {
     'broadcast': broadcast,
     'shutdownUrl': shutdownUrl,
     'haEntity': haEntity,
+    'haShutdownEntity': haShutdownEntity,
   };
 
   factory ComputerConfig.fromJson(Map<String, dynamic> json) => ComputerConfig(
@@ -75,6 +82,7 @@ class ComputerConfig {
     broadcast: json['broadcast'] as String? ?? '255.255.255.255',
     shutdownUrl: json['shutdownUrl'] as String? ?? '',
     haEntity: json['haEntity'] as String? ?? '',
+    haShutdownEntity: json['haShutdownEntity'] as String? ?? '',
   );
 }
 

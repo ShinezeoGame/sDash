@@ -125,6 +125,83 @@ class ComputerTile extends StatelessWidget {
   }
 }
 
+/// Robot aspirateur : état, batterie, lancer / mettre en pause, renvoyer à la base.
+class VacuumTile extends StatelessWidget {
+  const VacuumTile({super.key, required this.vacuum});
+
+  final VacuumDevice vacuum;
+
+  @override
+  Widget build(BuildContext context) {
+    final home = HomeScope.read(context);
+    final c = context.colors;
+    final t = context.text;
+    final cleaning = vacuum.isCleaning;
+    final atBase = vacuum.state == VacuumState.docked || vacuum.state == VacuumState.returning;
+    final status = vacuum.available ? vacuum.state.label : 'Indisponible';
+    final battery = vacuum.available ? vacuum.battery : null;
+    final dot = switch (vacuum.state) {
+      VacuumState.error => c.danger,
+      VacuumState.cleaning || VacuumState.returning => c.accent,
+      VacuumState.docked => c.success,
+      _ => c.textFaint,
+    };
+    return Opacity(
+      opacity: vacuum.available ? 1 : 0.5,
+      child: Tile(
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        child: Row(
+          children: [
+            IconBadge(icon: Icons.cleaning_services_rounded, tone: cleaning ? BadgeTone.highlight : BadgeTone.neutral),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(vacuum.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.itemTitle),
+                  Row(
+                    children: [
+                      StatusDot(color: dot),
+                      const SizedBox(width: 7),
+                      Flexible(
+                        child: Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.secondary),
+                      ),
+                      // La batterie reste toujours lisible : c'est l'état qui se raccourcit.
+                      if (battery != null) ...[
+                        const SizedBox(width: 8),
+                        Icon(Icons.battery_full_rounded, size: 16, color: c.textMuted, semanticLabel: 'Batterie'),
+                        Text('$battery %', maxLines: 1, style: t.secondary),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            SquareButton(
+              icon: cleaning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              tooltip: cleaning ? 'Mettre ${vacuum.name} en pause' : 'Lancer ${vacuum.name}',
+              active: cleaning,
+              onPressed: vacuum.available
+                  ? () => home.vacuumCommand(vacuum.id, cleaning ? VacuumCommand.pause : VacuumCommand.start)
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            SquareButton(
+              icon: Icons.home_rounded,
+              tooltip: 'Renvoyer ${vacuum.name} à sa base',
+              onPressed: vacuum.available && !atBase
+                  ? () => home.vacuumCommand(vacuum.id, VacuumCommand.returnHome)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Boutons de scènes. Un appui active la scène ; le bouton confirme brièvement.
 class SceneButtons extends StatefulWidget {
   const SceneButtons({super.key, required this.scenes, this.scroll = false});

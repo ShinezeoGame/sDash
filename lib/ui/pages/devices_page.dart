@@ -17,7 +17,7 @@ class DevicesPage extends StatelessWidget {
     final state = home.state;
     return AppPage(
       title: 'Appareils',
-      subtitle: 'Ordinateurs, prises et scènes',
+      subtitle: 'Ordinateurs, aspirateur, prises et scènes',
       children: [
         SectionHeader(
           icon: Icons.desktop_windows_rounded,
@@ -40,6 +40,11 @@ class DevicesPage extends StatelessWidget {
             tileHeight: 72,
             children: [for (final pc in state.computers) ComputerTile(pc: pc)],
           ),
+        if (state.vacuums.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          const SectionHeader(icon: Icons.cleaning_services_rounded, title: 'Robot aspirateur'),
+          TileGrid(minTileWidth: 320, tileHeight: 72, children: [for (final v in state.vacuums) VacuumTile(vacuum: v)]),
+        ],
         if (state.switches.isNotEmpty) ...[
           const SizedBox(height: 14),
           const SectionHeader(icon: Icons.power_rounded, title: 'Prises et appareils'),

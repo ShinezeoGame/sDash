@@ -267,6 +267,64 @@ class ComputerDevice implements Identified {
   );
 }
 
+enum VacuumState { docked, cleaning, paused, returning, idle, error, unknown }
+
+extension VacuumStateLabel on VacuumState {
+  String get label => switch (this) {
+    VacuumState.docked => 'À la base',
+    VacuumState.cleaning => 'Nettoyage en cours',
+    VacuumState.paused => 'En pause',
+    VacuumState.returning => 'Retour à la base',
+    VacuumState.idle => 'À l’arrêt',
+    VacuumState.error => 'Erreur',
+    VacuumState.unknown => 'Inconnu',
+  };
+}
+
+VacuumState vacuumStateFromHomeAssistant(String state) => switch (state) {
+  'docked' => VacuumState.docked,
+  'cleaning' => VacuumState.cleaning,
+  'paused' => VacuumState.paused,
+  'returning' => VacuumState.returning,
+  'idle' => VacuumState.idle,
+  'error' => VacuumState.error,
+  _ => VacuumState.unknown,
+};
+
+enum VacuumCommand { start, pause, returnHome }
+
+class VacuumDevice implements Identified {
+  const VacuumDevice({
+    required this.id,
+    required this.name,
+    this.roomId,
+    this.state = VacuumState.unknown,
+    this.battery,
+    this.available = true,
+  });
+
+  @override
+  final String id;
+  final String name;
+  final String? roomId;
+  final VacuumState state;
+
+  /// Charge de la batterie en %, si connue.
+  final int? battery;
+  final bool available;
+
+  bool get isCleaning => state == VacuumState.cleaning;
+
+  VacuumDevice copyWith({VacuumState? state, int? battery}) => VacuumDevice(
+    id: id,
+    name: name,
+    roomId: roomId,
+    state: state ?? this.state,
+    battery: battery ?? this.battery,
+    available: available,
+  );
+}
+
 enum SceneKind { cosy, movie, night, morning, away, generic }
 
 SceneKind guessSceneKind(String name) {
@@ -325,6 +383,7 @@ class HomeState {
     this.covers = const [],
     this.switches = const [],
     this.computers = const [],
+    this.vacuums = const [],
     this.scenes = const [],
     this.outdoorTemp,
     this.weather = WeatherKind.unknown,
@@ -340,6 +399,7 @@ class HomeState {
   final List<CoverDevice> covers;
   final List<SwitchDevice> switches;
   final List<ComputerDevice> computers;
+  final List<VacuumDevice> vacuums;
   final List<SceneItem> scenes;
   final double? outdoorTemp;
   final WeatherKind weather;
@@ -349,7 +409,13 @@ class HomeState {
   final String energyUnit;
 
   bool get isEmpty =>
-      lights.isEmpty && climates.isEmpty && covers.isEmpty && switches.isEmpty && computers.isEmpty && scenes.isEmpty;
+      lights.isEmpty &&
+      climates.isEmpty &&
+      covers.isEmpty &&
+      switches.isEmpty &&
+      computers.isEmpty &&
+      vacuums.isEmpty &&
+      scenes.isEmpty;
 
   Room? room(String? id) {
     if (id == null) return null;
@@ -379,6 +445,7 @@ class HomeState {
     List<CoverDevice>? covers,
     List<SwitchDevice>? switches,
     List<ComputerDevice>? computers,
+    List<VacuumDevice>? vacuums,
     List<SceneItem>? scenes,
     double? outdoorTemp,
     WeatherKind? weather,
@@ -391,6 +458,7 @@ class HomeState {
     covers: covers ?? this.covers,
     switches: switches ?? this.switches,
     computers: computers ?? this.computers,
+    vacuums: vacuums ?? this.vacuums,
     scenes: scenes ?? this.scenes,
     outdoorTemp: outdoorTemp ?? this.outdoorTemp,
     weather: weather ?? this.weather,

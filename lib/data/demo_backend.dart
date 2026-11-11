@@ -19,6 +19,9 @@ class DemoBackend implements HomeBackend {
   final Map<String, int> _coverTargets = {};
   final Map<String, DateTime> _computerBusy = {};
 
+  /// Pas de simulation restants avant que l'aspirateur rejoigne sa base.
+  final Map<String, int> _vacuumReturn = {};
+
   /// Consignes mémorisées par mode, pour chaque thermostat.
   final Map<String, Map<ClimateMode, double>> _setpoints = {};
   Timer? _timer;
@@ -174,6 +177,37 @@ class DemoBackend implements HomeBackend {
   }
 
   @override
+  Future<void> vacuumCommand(String id, VacuumCommand command) async {
+    await _later();
+    _home = _home.copyWith(
+      vacuums: [
+        for (final v in _home.vacuums)
+          if (v.id == id)
+            v.copyWith(
+              state: switch (command) {
+                VacuumCommand.start => VacuumState.cleaning,
+                VacuumCommand.pause => VacuumState.paused,
+                VacuumCommand.returnHome => VacuumState.returning,
+              },
+            )
+          else
+            v,
+      ],
+    );
+    if (command == VacuumCommand.returnHome) {
+      _vacuumReturn[id] = 4;
+    } else {
+      _vacuumReturn.remove(id);
+    }
+    _emit();
+  }
+
+  @override
+  Future<void> triggerEntity(String entityId) async {
+    throw const BackendException('Disponible uniquement avec Home Assistant.');
+  }
+
+  @override
   Future<void> activateScene(String id) async {
     await _later();
     final scene = _home.scenes.where((s) => s.id == id).firstOrNull;
@@ -307,6 +341,32 @@ class DemoBackend implements HomeBackend {
       }
     }
 
+    // Aspirateur : la batterie se vide en nettoyage, se recharge à la base.
+    if (_home.vacuums.isNotEmpty) {
+      final vacuums = <VacuumDevice>[];
+      for (final v in _home.vacuums) {
+        var next = v;
+        final battery = v.battery ?? 100;
+        if (v.state == VacuumState.cleaning) {
+          next = battery <= 20 ? v.copyWith(state: VacuumState.returning) : v.copyWith(battery: battery - 1);
+          if (battery <= 20) _vacuumReturn[v.id] = 4;
+        } else if (v.state == VacuumState.returning) {
+          final left = (_vacuumReturn[v.id] ?? 1) - 1;
+          if (left <= 0) {
+            _vacuumReturn.remove(v.id);
+            next = v.copyWith(state: VacuumState.docked);
+          } else {
+            _vacuumReturn[v.id] = left;
+          }
+        } else if (v.state == VacuumState.docked && battery < 100) {
+          next = v.copyWith(battery: battery + 1);
+        }
+        if (!identical(next, v)) changed = true;
+        vacuums.add(next);
+      }
+      _home = _home.copyWith(vacuums: vacuums);
+    }
+
     if (changed) _emit();
   }
 }
@@ -389,6 +449,15 @@ HomeState demoHome() => const HomeState(
       detail: '192.168.1.10',
       canShutdown: true,
       isServer: true,
+    ),
+  ],
+  vacuums: [
+    VacuumDevice(
+      id: 'vacuum.robot',
+      name: 'Robot aspirateur',
+      roomId: 'salon',
+      state: VacuumState.docked,
+      battery: 100,
     ),
   ],
   scenes: [

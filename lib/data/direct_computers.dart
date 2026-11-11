@@ -9,9 +9,16 @@ import 'settings.dart';
 /// Ordinateurs pilotés directement depuis la tablette : réveil par paquet magique,
 /// état déduit d'une sonde réseau, extinction via une URL optionnelle.
 class DirectComputers {
-  DirectComputers(this.configs);
+  DirectComputers(this.configs, {this.trigger});
 
   final List<ComputerConfig> configs;
+
+  /// Déclenche une entité Home Assistant (extinction par `haShutdownEntity`) ;
+  /// nul hors mode Home Assistant.
+  final Future<void> Function(String entityId)? trigger;
+
+  bool _canShutdown(ComputerConfig c) =>
+      c.shutdownUrl.trim().isNotEmpty || (c.haShutdownEntity.trim().isNotEmpty && trigger != null);
 
   static const _idPrefix = 'pc:';
   static const _bootTimeout = Duration(minutes: 3);
@@ -37,7 +44,7 @@ class DirectComputers {
         name: c.name,
         state: _states[c.id] ?? PowerState.unknown,
         detail: c.host.isNotEmpty ? c.host : (c.mac.isNotEmpty ? c.mac.toUpperCase() : null),
-        canShutdown: c.shutdownUrl.trim().isNotEmpty,
+        canShutdown: _canShutdown(c),
       ),
   ];
 
@@ -110,7 +117,8 @@ class DirectComputers {
   Future<void> setPower(String deviceId, bool on) async {
     final config = configs.where((c) => DirectComputers.deviceId(c) == deviceId).firstOrNull;
     if (config == null) throw const BackendException('Ordinateur introuvable');
-    if (!net.netToolsSupported) {
+    final viaHomeAssistant = !on && config.shutdownUrl.trim().isEmpty && _canShutdown(config);
+    if (!net.netToolsSupported && !viaHomeAssistant) {
       throw const BackendException('Le pilotage réseau n’est disponible que sur la tablette.');
     }
     if (on) {
@@ -120,10 +128,13 @@ class DirectComputers {
       await net.sendMagicPacket(config.mac, broadcast: config.broadcast);
       _states[config.id] = PowerState.starting;
     } else {
-      if (config.shutdownUrl.trim().isEmpty) {
+      if (viaHomeAssistant) {
+        await trigger!(config.haShutdownEntity.trim());
+      } else if (config.shutdownUrl.trim().isNotEmpty) {
+        await net.sendHttpCommand(config.shutdownUrl);
+      } else {
         throw BackendException('Aucune commande d’extinction configurée pour « ${config.name} ».');
       }
-      await net.sendHttpCommand(config.shutdownUrl);
       _states[config.id] = PowerState.stopping;
     }
     _busySince[config.id] = DateTime.now();

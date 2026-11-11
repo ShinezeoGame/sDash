@@ -38,6 +38,22 @@ void main() {
       await demo.dispose();
     });
 
+    test('l’aspirateur nettoie, se vide, puis rentre à sa base', () async {
+      final demo = DemoBackend(latency: Duration.zero);
+      VacuumDevice robot() => demo.current.vacuums.single;
+      expect(robot().state, VacuumState.docked);
+      await demo.vacuumCommand('vacuum.robot', VacuumCommand.start);
+      expect(robot().state, VacuumState.cleaning);
+      demo.simulateStep();
+      expect(robot().battery, 99);
+      await demo.vacuumCommand('vacuum.robot', VacuumCommand.returnHome);
+      for (var i = 0; i < 6; i++) {
+        demo.simulateStep();
+      }
+      expect(robot().state, VacuumState.docked);
+      await demo.dispose();
+    });
+
     test('chaque mode de chauffage retient sa propre consigne', () async {
       final demo = DemoBackend(latency: Duration.zero);
       await demo.setClimateTarget('climate.salon', 22.5);

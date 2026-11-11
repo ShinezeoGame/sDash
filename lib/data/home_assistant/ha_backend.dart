@@ -146,8 +146,9 @@ class HomeAssistantBackend implements HomeBackend {
     final data = event['data'];
     if (data is! Json) return;
     final entityId = data['entity_id'];
-    if (entityId is! String || !haRelevantDomains.contains(haDomain(entityId))) return;
+    if (entityId is! String) return;
     final newState = data['new_state'];
+    if (!haKeepEntity(entityId, newState is Json ? newState : _entities[entityId])) return;
     if (newState is Json) {
       _entities[entityId] = newState;
     } else {
@@ -177,7 +178,7 @@ class HomeAssistantBackend implements HomeBackend {
       _entities.clear();
       for (final s in (results[0] as List? ?? const []).whereType<Json>()) {
         final id = s['entity_id'];
-        if (id is String && haRelevantDomains.contains(haDomain(id))) _entities[id] = s;
+        if (id is String && haKeepEntity(id, s)) _entities[id] = s;
       }
       _registry = HaRegistry.fromLists(
         areas: results[1] as List,
@@ -360,11 +361,26 @@ class HomeAssistantBackend implements HomeBackend {
     if (config == null) throw const BackendException('Ordinateur introuvable');
     final entity = config.haEntity.trim();
     final domain = haDomain(entity);
+    final shutdown = config.haShutdownEntity.trim();
+    if (!on && shutdown.isNotEmpty) return triggerEntity(shutdown);
     if (domain == 'button') {
-      if (!on) throw const BackendException('Cette entité permet seulement l’allumage.');
+      if (!on) throw const BackendException('Aucune commande d’extinction configurée pour cet ordinateur.');
       return _service('button', 'press', entity);
     }
     return _service(domain, on ? 'turn_on' : 'turn_off', entity);
+  }
+
+  @override
+  Future<void> vacuumCommand(String id, VacuumCommand command) => _service('vacuum', switch (command) {
+    VacuumCommand.start => 'start',
+    VacuumCommand.pause => 'pause',
+    VacuumCommand.returnHome => 'return_to_base',
+  }, id);
+
+  @override
+  Future<void> triggerEntity(String entityId) {
+    final (domain, service) = triggerService(entityId);
+    return _service(domain, service, entityId);
   }
 
   @override

@@ -43,36 +43,35 @@ class _HomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = HomeScope.of(context).state;
-    // Une section sans appareil n'est pas affichée.
-    final lights = state.lights.isEmpty ? null : const _LightsSection();
-    final climate = state.climates.isEmpty ? null : const _ClimateSection();
-    final covers = state.covers.isEmpty ? null : const _CoversSection();
-    final computers = state.computers.isEmpty ? null : const _ComputersSection();
-    final energy = (state.energyWeek ?? const []).isEmpty ? null : const _EnergySection();
+    // Sections dans l'ordre d'importance, avec leur hauteur approximative ;
+    // une section sans appareil n'est pas affichée.
+    const header = 50.0;
+    const row = 84.0;
+    final sections = <(Widget, double)>[
+      if (state.lights.isNotEmpty) (const _LightsSection(), header + 116.0 * ((lightsByRoom(state).length + 1) ~/ 2)),
+      if (state.climates.isNotEmpty) (const _ClimateSection(), header + row * state.climates.length),
+      if (state.covers.isNotEmpty) (const _CoversSection(), header + 64 + row * state.covers.length),
+      if (state.computers.isNotEmpty) (const _ComputersSection(), header + row * state.computers.length),
+      if (state.vacuums.isNotEmpty) (const _VacuumsSection(), header + row * state.vacuums.length),
+      if ((state.energyWeek ?? const []).isNotEmpty) (const _EnergySection(), header + 170.0),
+    ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final List<List<Widget?>> layout;
-        if (width >= 1000) {
-          layout = [
-            [lights, computers],
-            [climate, energy],
-            [covers],
-          ];
-        } else if (width >= 620) {
-          layout = [
-            [lights, covers, energy],
-            [climate, computers],
-          ];
-        } else {
-          layout = [
-            [lights, climate, covers, computers, energy],
-          ];
+        final count = (width >= 1000 ? 3 : (width >= 620 ? 2 : 1)).clamp(1, sections.isEmpty ? 1 : sections.length);
+        // Chaque section rejoint la colonne la moins haute : les colonnes restent équilibrées
+        // quels que soient les appareils de la maison.
+        final columns = List.generate(count, (_) => <Widget>[]);
+        final heights = List.filled(count, 0.0);
+        for (final (section, height) in sections) {
+          var target = 0;
+          for (var i = 1; i < count; i++) {
+            if (heights[i] < heights[target]) target = i;
+          }
+          columns[target].add(section);
+          heights[target] += height + 14;
         }
-        final columns = [for (final column in layout) column.whereType<Widget>().toList()]
-            .where((column) => column.isNotEmpty)
-            .toList();
 
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 20),
@@ -86,7 +85,7 @@ class _HomeContent extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (var i = 0; i < columns.length; i++) ...[
+                  for (var i = 0; i < count; i++) ...[
                     if (i > 0) const SizedBox(width: Dim.sectionGap),
                     Expanded(
                       child: Column(
@@ -433,6 +432,31 @@ class _ComputersSection extends StatelessWidget {
         for (var i = 0; i < computers.length; i++) ...[
           if (i > 0) const SizedBox(height: Dim.gap),
           SizedBox(height: 72, child: ComputerTile(pc: computers[i])),
+        ],
+      ],
+    );
+  }
+}
+
+// ───────────────────────────── Aspirateurs ─────────────────────────────
+
+class _VacuumsSection extends StatelessWidget {
+  const _VacuumsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final vacuums = HomeScope.of(context).state.vacuums;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SectionHeader(
+          title: vacuums.length > 1 ? 'Aspirateurs' : 'Aspirateur',
+          onOpen: () => ShellNav.go(context, AppSection.devices),
+        ),
+        for (var i = 0; i < vacuums.length; i++) ...[
+          if (i > 0) const SizedBox(height: Dim.gap),
+          SizedBox(height: 72, child: VacuumTile(vacuum: vacuums[i])),
         ],
       ],
     );

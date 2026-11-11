@@ -141,6 +141,20 @@ void main() {
     await tearDownApp(tester, controller);
   });
 
+  testWidgets('accueil : le bouton de l’aspirateur lance le nettoyage', (tester) async {
+    final controller = await pumpApp(tester, const Size(1280, 800));
+    VacuumDevice robot() => controller.state.vacuums.single;
+
+    expect(robot().state, VacuumState.docked);
+    await tester.ensureVisible(find.byTooltip('Lancer Robot aspirateur'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byTooltip('Lancer Robot aspirateur'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(robot().state, VacuumState.cleaning);
+
+    await tearDownApp(tester, controller);
+  });
+
   testWidgets('un appui sur une tuile de la page Lumières allume la lampe', (tester) async {
     final controller = await pumpApp(tester, const Size(1280, 800));
     await tester.tap(find.byKey(const ValueKey('nav-lights')));

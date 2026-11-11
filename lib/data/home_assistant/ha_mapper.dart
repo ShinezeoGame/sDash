@@ -17,7 +17,20 @@ const haRelevantDomains = {
   'weather',
   'button',
   'input_boolean',
+  'vacuum',
+  // Seuls les capteurs de batterie sont gardés (voir [haKeepEntity]).
+  'sensor',
 };
+
+/// Vrai si l'entité intéresse l'application. Parmi les capteurs, seuls ceux de
+/// batterie sont gardés : les autres changent sans cesse et ne servent à rien ici.
+bool haKeepEntity(String entityId, Map<String, dynamic>? state) {
+  final domain = haDomain(entityId);
+  if (!haRelevantDomains.contains(domain)) return false;
+  if (domain != 'sensor') return true;
+  final attrs = state?['attributes'];
+  return attrs is Map && attrs['device_class'] == 'battery';
+}
 
 const _awayPresets = ['away', 'frost_protection', 'frost', 'hors_gel', 'hors-gel', 'antifreeze'];
 
@@ -28,13 +41,21 @@ String haDomain(String entityId) {
 
 /// Pièces et visibilité des entités, issues des registres Home Assistant.
 class HaRegistry {
-  const HaRegistry({this.areas = const [], this.entityArea = const {}, this.hidden = const {}});
+  const HaRegistry({
+    this.areas = const [],
+    this.entityArea = const {},
+    this.entityDevice = const {},
+    this.hidden = const {},
+  });
 
   static const empty = HaRegistry();
 
   /// Pièces dans l'ordre défini dans Home Assistant.
   final List<Room> areas;
   final Map<String, String> entityArea;
+
+  /// Appareil auquel appartient chaque entité (relie l'aspirateur à son capteur de batterie).
+  final Map<String, String> entityDevice;
 
   /// Entités masquées, désactivées ou techniques (configuration / diagnostic).
   final Set<String> hidden;
@@ -58,17 +79,20 @@ class HaRegistry {
         if (d['id'] is String && d['area_id'] is String) d['id'] as String: d['area_id'] as String,
     };
     final entityArea = <String, String>{};
+    final entityDevice = <String, String>{};
     final hidden = <String>{};
     for (final e in entities.whereType<Json>()) {
       final id = e['entity_id'];
       if (id is! String) continue;
       final area = e['area_id'] as String? ?? deviceArea[e['device_id']];
       if (area != null) entityArea[id] = area;
+      final device = e['device_id'];
+      if (device is String) entityDevice[id] = device;
       if (e['hidden_by'] != null || e['disabled_by'] != null || e['entity_category'] != null) {
         hidden.add(id);
       }
     }
-    return HaRegistry(areas: rooms, entityArea: entityArea, hidden: hidden);
+    return HaRegistry(areas: rooms, entityArea: entityArea, entityDevice: entityDevice, hidden: hidden);
   }
 }
 
@@ -81,16 +105,20 @@ String _friendlyName(String entityId, Json state) {
   return words.isEmpty ? entityId : words[0].toUpperCase() + words.substring(1);
 }
 
-/// Retire le nom de la pièce en tête du nom (« Salon Plafonnier » → « Plafonnier »).
+/// Retire le nom de la pièce, en tête ou en fin de nom :
+/// « Salon Plafonnier » ou « Plafonnier Salon » → « Plafonnier ».
 String _stripRoom(String name, String? roomName) {
   if (roomName == null) return name;
   final lower = name.toLowerCase();
-  final prefix = roomName.toLowerCase();
-  if (lower.startsWith('$prefix ') && name.length > roomName.length + 1) {
-    final rest = name.substring(roomName.length + 1).trim();
-    return rest[0].toUpperCase() + rest.substring(1);
+  final room = roomName.toLowerCase();
+  String? rest;
+  if (lower.startsWith('$room ') && name.length > roomName.length + 1) {
+    rest = name.substring(roomName.length + 1).trim();
+  } else if (lower.endsWith(' $room') && name.length > roomName.length + 1) {
+    rest = name.substring(0, name.length - roomName.length - 1).trim();
   }
-  return name;
+  if (rest == null || rest.isEmpty) return name;
+  return rest[0].toUpperCase() + rest.substring(1);
 }
 
 double? _num(dynamic v) => v is num ? v.toDouble() : (v is String ? double.tryParse(v) : null);
@@ -115,10 +143,24 @@ HomeState mapHomeAssistant({
   final covers = <CoverDevice>[];
   final switches = <SwitchDevice>[];
   final scenes = <SceneItem>[];
+  final vacuums = <VacuumDevice>[];
   double? outdoorTemp;
   var weather = WeatherKind.unknown;
 
   final ids = states.keys.toList()..sort();
+
+  // Charge de batterie connue pour chaque appareil (capteurs « battery »).
+  final deviceBattery = <String, int>{};
+  for (final id in ids) {
+    if (haDomain(id) != 'sensor') continue;
+    final attrs = states[id]!['attributes'];
+    final device = registry.entityDevice[id];
+    final level = _num(states[id]!['state']);
+    if (attrs is Json && attrs['device_class'] == 'battery' && device != null && level != null) {
+      deviceBattery[device] = level.round();
+    }
+  }
+
   for (final id in ids) {
     if (registry.hidden.contains(id) || computerEntities.contains(id)) continue;
     final s = states[id]!;
@@ -206,6 +248,18 @@ HomeState mapHomeAssistant({
             available: available,
           ),
         );
+      case 'vacuum':
+        final battery = _num(attrs['battery_level'])?.round() ?? deviceBattery[registry.entityDevice[id]];
+        vacuums.add(
+          VacuumDevice(
+            id: id,
+            name: name,
+            roomId: roomId,
+            state: vacuumStateFromHomeAssistant(state),
+            battery: battery,
+            available: available,
+          ),
+        );
       case 'scene' || 'script':
         scenes.add(SceneItem(id: id, name: name, kind: guessSceneKind(name)));
       case 'weather':
@@ -228,7 +282,7 @@ HomeState mapHomeAssistant({
             _ => PowerState.unknown,
           },
           detail: c.host.isNotEmpty ? c.host : c.haEntity.trim(),
-          canShutdown: haDomain(c.haEntity.trim()) != 'button',
+          canShutdown: haDomain(c.haEntity.trim()) != 'button' || c.haShutdownEntity.trim().isNotEmpty,
         ),
   ];
 
@@ -238,6 +292,7 @@ HomeState mapHomeAssistant({
     ...climates.map((d) => d.roomId),
     ...covers.map((d) => d.roomId),
     ...switches.map((d) => d.roomId),
+    ...vacuums.map((d) => d.roomId),
   };
 
   return HomeState(
@@ -247,12 +302,24 @@ HomeState mapHomeAssistant({
     covers: covers,
     switches: switches,
     computers: computerDevices,
+    vacuums: vacuums,
     scenes: scenes,
     outdoorTemp: outdoorTemp,
     weather: weather,
     energyWeek: energyWeek,
     energyUnit: energyUnit,
   );
+}
+
+/// Service qui « déclenche » une entité d'action : appui sur un bouton, lancement
+/// d'un script, ou extinction d'un interrupteur.
+(String, String) triggerService(String entityId) {
+  final domain = haDomain(entityId);
+  return switch (domain) {
+    'button' || 'input_button' => (domain, 'press'),
+    'script' || 'scene' => (domain, 'turn_on'),
+    _ => (domain, 'turn_off'),
+  };
 }
 
 /// Commande Home Assistant correspondant à un changement de mode de chauffage.

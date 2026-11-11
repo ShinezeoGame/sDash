@@ -151,4 +151,74 @@ void main() {
       'ws://homeassistant.local:8123/api/websocket',
     );
   });
+
+  group('appareils de l’inventaire réel', () {
+    final registry = HaRegistry.fromLists(
+      areas: [
+        {'area_id': 'salon', 'name': 'Salon'},
+        {'area_id': 'bureau', 'name': 'Bureau'},
+      ],
+      devices: [
+        {'id': 'robot', 'area_id': 'salon'},
+        {'id': 'nas', 'area_id': 'bureau'},
+      ],
+      entities: [
+        {'entity_id': 'vacuum.bob', 'device_id': 'robot'},
+        {'entity_id': 'sensor.bob_batterie', 'device_id': 'robot'},
+        {'entity_id': 'light.yeelight_color4_0x17798875', 'area_id': 'bureau'},
+        {'entity_id': 'sensor.nas_temperature', 'device_id': 'nas'},
+      ],
+    );
+    final states = <String, Json>{
+      'vacuum.bob': entity('vacuum.bob', 'docked', {'friendly_name': 'bob', 'fan_speed': 'balanced'}),
+      'sensor.bob_batterie': entity('sensor.bob_batterie', '87', {
+        'device_class': 'battery',
+        'unit_of_measurement': '%',
+      }),
+      'light.yeelight_color4_0x17798875': entity('light.yeelight_color4_0x17798875', 'off', {
+        'friendly_name': 'Lampadaire Bureau',
+        'supported_color_modes': ['color_temp', 'hs', 'rgb'],
+      }),
+      'sensor.nas_temperature': entity('sensor.nas_temperature', '36', {'device_class': 'temperature'}),
+    };
+
+    test('aspirateur : état, pièce et batterie lue sur le capteur du même appareil', () {
+      final home = mapHomeAssistant(states: states, registry: registry);
+      final bob = home.vacuums.single;
+      expect(bob.name, 'bob', reason: 'le nom choisi dans Home Assistant est respecté');
+      expect(bob.state, VacuumState.docked);
+      expect(bob.battery, 87);
+      expect(bob.roomId, 'salon');
+      expect(home.rooms.map((r) => r.id), containsAll(['salon', 'bureau']));
+    });
+
+    test('le nom de la pièce est retiré aussi en fin de nom', () {
+      final home = mapHomeAssistant(states: states, registry: registry);
+      expect(home.lights.single.name, 'Lampadaire');
+    });
+
+    test('seuls les capteurs de batterie sont suivis', () {
+      expect(haKeepEntity('sensor.bob_batterie', states['sensor.bob_batterie']), isTrue);
+      expect(haKeepEntity('sensor.nas_temperature', states['sensor.nas_temperature']), isFalse);
+      expect(haKeepEntity('vacuum.bob', states['vacuum.bob']), isTrue);
+      expect(haKeepEntity('binary_sensor.bob_en_charge', null), isFalse);
+    });
+
+    test('extinction par une entité : bouton pressé, script lancé, interrupteur coupé', () {
+      expect(triggerService('button.nas_shut_down'), ('button', 'press'));
+      expect(triggerService('script.eteindre_pc'), ('script', 'turn_on'));
+      expect(triggerService('switch.pc_bureau'), ('switch', 'turn_off'));
+    });
+
+    test('un ordinateur Home Assistant avec entité d’extinction peut être éteint', () {
+      final home = mapHomeAssistant(
+        states: {...states, 'button.nas_wake': entity('button.nas_wake', 'unknown')},
+        registry: registry,
+        computers: const [
+          ComputerConfig(id: 'n', name: 'NAS', haEntity: 'button.nas_wake', haShutdownEntity: 'button.nas_shut_down'),
+        ],
+      );
+      expect(home.computers.single.canShutdown, isTrue);
+    });
+  });
 }

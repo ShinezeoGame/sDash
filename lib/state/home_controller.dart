@@ -106,7 +106,7 @@ class HomeController extends ChangeNotifier {
     final direct = DirectComputers([
       for (final c in _settings.computers)
         if (!(usesHa && c.usesHomeAssistant)) c,
-    ]);
+    ], trigger: usesHa ? backend.triggerEntity : null);
     _direct = direct;
     _directComputers = direct.current;
     _subscriptions.add(
@@ -318,6 +318,18 @@ class HomeController extends ChangeNotifier {
       return;
     }
     await _run((b) => b.setComputerPower(id, on), success: success);
+  }
+
+  // ───────────────────────────── Aspirateurs ─────────────────────────────
+
+  Future<void> vacuumCommand(String id, VacuumCommand command) {
+    final name = _state.vacuums.where((v) => v.id == id).firstOrNull?.name ?? 'Le robot';
+    final success = switch (command) {
+      VacuumCommand.start => 'Nettoyage lancé',
+      VacuumCommand.pause => 'Nettoyage mis en pause',
+      VacuumCommand.returnHome => '« $name » retourne à sa base',
+    };
+    return _run((b) => b.vacuumCommand(id, command), success: success);
   }
 
   // ───────────────────────────── Scènes ─────────────────────────────

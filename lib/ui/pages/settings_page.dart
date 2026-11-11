@@ -469,10 +469,11 @@ class _ComputerDialogState extends State<_ComputerDialog> {
   late final _broadcast = TextEditingController(text: widget.initial?.broadcast ?? '255.255.255.255');
   late final _shutdown = TextEditingController(text: widget.initial?.shutdownUrl ?? '');
   late final _entity = TextEditingController(text: widget.initial?.haEntity ?? '');
+  late final _shutdownEntity = TextEditingController(text: widget.initial?.haShutdownEntity ?? '');
 
   @override
   void dispose() {
-    for (final c in [_name, _mac, _host, _broadcast, _shutdown, _entity]) {
+    for (final c in [_name, _mac, _host, _broadcast, _shutdown, _entity, _shutdownEntity]) {
       c.dispose();
     }
     super.dispose();
@@ -490,6 +491,7 @@ class _ComputerDialogState extends State<_ComputerDialog> {
         broadcast: _broadcast.text.trim().isEmpty ? '255.255.255.255' : _broadcast.text.trim(),
         shutdownUrl: _shutdown.text.trim(),
         haEntity: _entity.text.trim(),
+        haShutdownEntity: _shutdownEntity.text.trim(),
       ),
     );
   }
@@ -574,6 +576,22 @@ class _ComputerDialogState extends State<_ComputerDialog> {
                     labelText: 'Entité Home Assistant (facultatif)',
                     hintText: 'switch.pc_bureau',
                     helperText: 'Prioritaire en mode Home Assistant',
+                  ),
+                  validator: (v) {
+                    final e = (v ?? '').trim();
+                    return e.isNotEmpty && !RegExp(r'^[a-z_]+\.[a-z0-9_]+$').hasMatch(e)
+                        ? 'Format attendu : domaine.nom'
+                        : null;
+                  },
+                ),
+                gap,
+                TextFormField(
+                  controller: _shutdownEntity,
+                  autocorrect: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Entité Home Assistant pour éteindre (facultatif)',
+                    hintText: 'button.nas_shut_down',
+                    helperText: 'Bouton ou script qui éteint la machine (NAS Synology, HASS.Agent…)',
                   ),
                   validator: (v) {
                     final e = (v ?? '').trim();
