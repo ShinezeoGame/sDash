@@ -18,6 +18,7 @@ const haRelevantDomains = {
   'button',
   'input_boolean',
   'vacuum',
+  'media_player',
   // Seuls les capteurs de batterie sont gardés (voir [haKeepEntity]).
   'sensor',
 };
@@ -144,6 +145,7 @@ HomeState mapHomeAssistant({
   final switches = <SwitchDevice>[];
   final scenes = <SceneItem>[];
   final vacuums = <VacuumDevice>[];
+  final media = <MediaDevice>[];
   double? outdoorTemp;
   var weather = WeatherKind.unknown;
 
@@ -260,6 +262,33 @@ HomeState mapHomeAssistant({
             available: available,
           ),
         );
+      case 'media_player':
+        final features = _num(attrs['supported_features'])?.toInt() ?? 0;
+        bool has(int flag) => features & flag != 0;
+        final title = [
+          attrs['media_title'],
+          attrs['media_artist'],
+        ].whereType<String>().where((t) => t.trim().isNotEmpty).join(' — ');
+        media.add(
+          MediaDevice(
+            id: id,
+            name: name,
+            roomId: roomId,
+            kind: guessMediaKind('${_friendlyName(id, s)} $id', attrs['device_class'] as String?),
+            isOn: !const {'off', 'standby', 'unavailable', 'unknown'}.contains(state),
+            isPlaying: state == 'playing',
+            volume: _num(attrs['volume_level'])?.clamp(0.0, 1.0),
+            muted: attrs['is_volume_muted'] == true,
+            title: title.isNotEmpty ? title : (attrs['app_name'] as String? ?? attrs['source'] as String?),
+            available: available,
+            // Fonctions annoncées par Home Assistant (MediaPlayerEntityFeature).
+            canTurnOn: has(128),
+            canTurnOff: has(256),
+            canVolume: has(4) || has(1024),
+            canMute: has(8),
+            canPlayPause: has(1) || has(16384),
+          ),
+        );
       case 'scene' || 'script':
         scenes.add(SceneItem(id: id, name: name, kind: guessSceneKind(name)));
       case 'weather':
@@ -294,6 +323,7 @@ HomeState mapHomeAssistant({
     ...covers.map((d) => d.roomId),
     ...switches.map((d) => d.roomId),
     ...vacuums.map((d) => d.roomId),
+    ...media.map((d) => d.roomId),
   };
 
   return HomeState(
@@ -304,6 +334,7 @@ HomeState mapHomeAssistant({
     switches: switches,
     computers: computerDevices,
     vacuums: vacuums,
+    media: media,
     scenes: scenes,
     outdoorTemp: outdoorTemp,
     weather: weather,
@@ -382,3 +413,16 @@ List<double>? parseEnergyWeek(dynamic result, String statisticId, DateTime now) 
   }
   return days;
 }
+
+/// Service `media_player` et données correspondant à une commande multimédia.
+(String, Json) mediaService(MediaCommand command, Json? state) => switch (command) {
+  MediaCommand.turnOn => ('turn_on', const {}),
+  MediaCommand.turnOff => ('turn_off', const {}),
+  MediaCommand.playPause => ('media_play_pause', const {}),
+  MediaCommand.volumeUp => ('volume_up', const {}),
+  MediaCommand.volumeDown => ('volume_down', const {}),
+  MediaCommand.toggleMute => (
+    'volume_mute',
+    {'is_volume_muted': !((state?['attributes'] as Json?)?['is_volume_muted'] == true)},
+  ),
+};

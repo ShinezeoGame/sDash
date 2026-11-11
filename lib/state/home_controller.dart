@@ -163,6 +163,7 @@ class HomeController extends ChangeNotifier {
         lights: _mergeLocal(base.lights, _state.lights),
         switches: _mergeLocal(base.switches, _state.switches),
         climates: _mergeLocal(base.climates, _state.climates),
+        media: _mergeLocal(base.media, _state.media),
       );
     }
     _state = base.copyWith(computers: [...base.computers, ..._directComputers]);
@@ -330,6 +331,19 @@ class HomeController extends ChangeNotifier {
       VacuumCommand.returnHome => '« $name » retourne à sa base',
     };
     return _run((b) => b.vacuumCommand(id, command), success: success);
+  }
+
+  // ───────────────────────────── Multimédia ─────────────────────────────
+
+  /// Le volume n'est pas anticipé : son pas dépend de l'appareil. L'état réel reprend
+  /// aussitôt la main, même juste après un allumage anticipé.
+  Future<void> mediaCommand(String id, MediaCommand command) {
+    if (command == MediaCommand.volumeUp || command == MediaCommand.volumeDown) {
+      _localEdits.remove(id);
+    } else {
+      _patch(_state.copyWith(media: [for (final m in _state.media) m.id == id ? m.applied(command) : m]), [id]);
+    }
+    return _run((b) => b.mediaCommand(id, command));
   }
 
   // ───────────────────────────── Scènes ─────────────────────────────

@@ -31,6 +31,13 @@ IconData switchIcon(SwitchKind kind) => switch (kind) {
   SwitchKind.generic => Icons.toggle_on_rounded,
 };
 
+IconData mediaIcon(MediaKind kind) => switch (kind) {
+  MediaKind.tv => Icons.tv_rounded,
+  MediaKind.speaker => Icons.speaker_rounded,
+  MediaKind.streamer => Icons.cast_connected_rounded,
+  MediaKind.generic => Icons.play_circle_rounded,
+};
+
 IconData weatherIcon(WeatherKind kind) => switch (kind) {
   WeatherKind.sunny => Icons.wb_sunny_rounded,
   WeatherKind.partlyCloudy => Icons.wb_cloudy_rounded,

@@ -17,8 +17,17 @@ class DevicesPage extends StatelessWidget {
     final state = home.state;
     return AppPage(
       title: 'Appareils',
-      subtitle: 'Ordinateurs, aspirateur, prises et scènes',
+      subtitle: 'Télé, ordinateurs et autres appareils',
       children: [
+        if (state.media.isNotEmpty) ...[
+          const SectionHeader(icon: Icons.tv_rounded, title: 'Multimédia'),
+          TileGrid(
+            minTileWidth: 320,
+            tileHeight: state.media.map(mediaTileHeight).reduce((a, b) => a > b ? a : b),
+            children: [for (final m in state.media) MediaTile(media: m)],
+          ),
+          const SizedBox(height: 14),
+        ],
         SectionHeader(
           icon: Icons.desktop_windows_rounded,
           title: 'Ordinateurs',

@@ -202,6 +202,120 @@ class VacuumTile extends StatelessWidget {
   }
 }
 
+/// Hauteur d'une tuile multimédia : une rangée de plus pour le volume et la lecture.
+double mediaTileHeight(MediaDevice media) => media.hasControls ? 132 : 72;
+
+/// Télé ou enceinte : marche / arrêt, puis volume, coupure du son et lecture.
+class MediaTile extends StatelessWidget {
+  const MediaTile({super.key, required this.media});
+
+  final MediaDevice media;
+
+  @override
+  Widget build(BuildContext context) {
+    final home = HomeScope.read(context);
+    final c = context.colors;
+    final t = context.text;
+    final m = media;
+    final on = m.available && m.isOn;
+    final status = !m.available
+        ? 'Indisponible'
+        : !m.isOn
+        ? 'À l’arrêt'
+        : [m.isPlaying ? 'En lecture' : 'En marche', if (m.title != null) m.title!].join(' · ');
+    final canPower = m.available && (on ? m.canTurnOff : m.canTurnOn);
+    VoidCallback? send(MediaCommand command, bool enabled) => enabled ? () => home.mediaCommand(m.id, command) : null;
+
+    return Opacity(
+      opacity: m.available ? 1 : 0.5,
+      child: Tile(
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                IconBadge(icon: mediaIcon(m.kind), tone: on ? BadgeTone.highlight : BadgeTone.neutral),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(m.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.itemTitle),
+                      Row(
+                        children: [
+                          StatusDot(color: on ? c.success : c.textFaint),
+                          const SizedBox(width: 7),
+                          Flexible(
+                            child: Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.secondary),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (m.canTurnOn || m.canTurnOff) ...[
+                  const SizedBox(width: 10),
+                  SquareButton(
+                    icon: Icons.power_settings_new_rounded,
+                    tooltip: on ? 'Éteindre ${m.name}' : 'Allumer ${m.name}',
+                    active: on,
+                    onPressed: send(on ? MediaCommand.turnOff : MediaCommand.turnOn, canPower),
+                  ),
+                ],
+              ],
+            ),
+            if (m.hasControls) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  if (m.canVolume) ...[
+                    SquareButton(
+                      icon: Icons.volume_down_rounded,
+                      tooltip: 'Baisser le volume de ${m.name}',
+                      onPressed: send(MediaCommand.volumeDown, on),
+                    ),
+                    SizedBox(
+                      width: 56,
+                      child: Text(
+                        m.volume == null ? '—' : '${(m.volume! * 100).round()} %',
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        style: t.secondary.copyWith(color: on ? c.text : c.textFaint),
+                      ),
+                    ),
+                    SquareButton(
+                      icon: Icons.volume_up_rounded,
+                      tooltip: 'Monter le volume de ${m.name}',
+                      onPressed: send(MediaCommand.volumeUp, on),
+                    ),
+                  ],
+                  const Spacer(),
+                  if (m.canMute)
+                    SquareButton(
+                      icon: Icons.volume_off_rounded,
+                      tooltip: m.muted ? 'Remettre le son de ${m.name}' : 'Couper le son de ${m.name}',
+                      active: on && m.muted,
+                      onPressed: send(MediaCommand.toggleMute, on),
+                    ),
+                  if (m.canMute && m.canPlayPause) const SizedBox(width: 8),
+                  if (m.canPlayPause)
+                    SquareButton(
+                      icon: m.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      tooltip: m.isPlaying ? 'Mettre ${m.name} en pause' : 'Reprendre la lecture sur ${m.name}',
+                      onPressed: send(MediaCommand.playPause, on),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Boutons de scènes. Un appui active la scène ; le bouton confirme brièvement.
 class SceneButtons extends StatefulWidget {
   const SceneButtons({super.key, required this.scenes, this.scroll = false});

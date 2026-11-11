@@ -54,6 +54,23 @@ void main() {
       await demo.dispose();
     });
 
+    test('la télé s’allume, change de volume, se coupe ; « Bonne nuit » l’éteint', () async {
+      final demo = DemoBackend(latency: Duration.zero);
+      MediaDevice tv() => demo.current.media.single;
+      expect(tv().isOn, isFalse);
+      await demo.mediaCommand('media_player.tele', MediaCommand.turnOn);
+      await demo.mediaCommand('media_player.tele', MediaCommand.volumeUp);
+      await demo.mediaCommand('media_player.tele', MediaCommand.toggleMute);
+      expect(tv().isOn, isTrue);
+      expect(tv().volume, closeTo(0.35, 0.001));
+      expect(tv().muted, isTrue);
+      await demo.activateScene('scene.nuit');
+      expect(tv().isOn, isFalse);
+      await demo.activateScene('scene.cinema');
+      expect(tv().isOn && tv().isPlaying, isTrue);
+      await demo.dispose();
+    });
+
     test('chaque mode de chauffage retient sa propre consigne', () async {
       final demo = DemoBackend(latency: Duration.zero);
       await demo.setClimateTarget('climate.salon', 22.5);

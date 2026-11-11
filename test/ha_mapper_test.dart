@@ -152,6 +152,70 @@ void main() {
     );
   });
 
+  test('télé, enceinte et passerelle : état, volume et fonctions annoncées', () {
+    final home = mapHomeAssistant(
+      states: {
+        'media_player.hisense_55e8q': entity('media_player.hisense_55e8q', 'on', {
+          'friendly_name': '55E8Q',
+          'device_class': 'tv',
+          'volume_level': 0.18,
+          'is_volume_muted': false,
+          'source': 'HDMI 1',
+          'supported_features': 1 | 4 | 8 | 512 | 16384, // pause, volume, muet, média, lecture
+        }),
+        'media_player.echo_salon': entity('media_player.echo_salon', 'playing', {
+          'friendly_name': 'Echo Salon',
+          'media_title': 'Clair de lune',
+          'media_artist': 'Debussy',
+          'supported_features': 1 | 128 | 256 | 1024 | 16384,
+        }),
+        'media_player.fire_tv': entity('media_player.fire_tv', 'off', {
+          'friendly_name': 'Fire TV',
+          'supported_features': 128 | 256,
+        }),
+      },
+      registry: HaRegistry.fromLists(
+        areas: [
+          {'area_id': 'salon', 'name': 'Salon'},
+        ],
+        devices: const [],
+        entities: [
+          {'entity_id': 'media_player.echo_salon', 'area_id': 'salon'},
+        ],
+      ),
+    );
+    MediaDevice byId(String id) => home.media.firstWhere((m) => m.id == id);
+
+    final tv = byId('media_player.hisense_55e8q');
+    expect(tv.kind, MediaKind.tv);
+    expect(tv.isOn, isTrue);
+    expect(tv.isPlaying, isFalse);
+    expect(tv.volume, 0.18);
+    expect(tv.title, 'HDMI 1');
+    expect([tv.canVolume, tv.canMute, tv.canPlayPause], [true, true, true]);
+    expect([tv.canTurnOn, tv.canTurnOff], [false, false], reason: 'DLNA ne sait ni allumer ni éteindre');
+
+    final echo = byId('media_player.echo_salon');
+    expect(echo.kind, MediaKind.speaker);
+    expect(echo.name, 'Echo', reason: 'le nom de la pièce est retiré');
+    expect(echo.roomId, 'salon');
+    expect(echo.isPlaying, isTrue);
+    expect(echo.title, 'Clair de lune — Debussy');
+    expect([echo.canTurnOn, echo.canVolume, echo.canMute], [true, true, false]);
+
+    final fire = byId('media_player.fire_tv');
+    expect(fire.kind, MediaKind.streamer);
+    expect(fire.isOn, isFalse);
+
+    // Les records comparent leurs Map par identité : on compare les éléments.
+    final (service, data) = mediaService(MediaCommand.toggleMute, {
+      'attributes': {'is_volume_muted': false},
+    });
+    expect(service, 'volume_mute');
+    expect(data, {'is_volume_muted': true});
+    expect(mediaService(MediaCommand.volumeUp, null).$1, 'volume_up');
+  });
+
   group('appareils de l’inventaire réel', () {
     final registry = HaRegistry.fromLists(
       areas: [

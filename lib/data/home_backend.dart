@@ -45,6 +45,9 @@ abstract class HomeBackend {
 
   Future<void> vacuumCommand(String id, VacuumCommand command);
 
+  /// Télé ou enceinte : marche / arrêt, lecture, volume.
+  Future<void> mediaCommand(String id, MediaCommand command);
+
   /// Déclenche une entité d'action (bouton, script, interrupteur à éteindre),
   /// par exemple le bouton d'extinction d'un NAS.
   Future<void> triggerEntity(String entityId);

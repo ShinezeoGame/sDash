@@ -177,6 +177,13 @@ class DemoBackend implements HomeBackend {
   }
 
   @override
+  Future<void> mediaCommand(String id, MediaCommand command) async {
+    await _later();
+    _home = _home.copyWith(media: [for (final m in _home.media) m.id == id ? m.applied(command) : m]);
+    _emit();
+  }
+
+  @override
   Future<void> vacuumCommand(String id, VacuumCommand command) async {
     await _later();
     _home = _home.copyWith(
@@ -246,16 +253,14 @@ class DemoBackend implements HomeBackend {
       case SceneKind.movie:
         _home = _home.copyWith(
           lights: [for (final l in _home.lights) l.roomId == 'salon' ? light(l, l.id == 'light.salon_led', 0.15) : l],
-          switches: [for (final s in _home.switches) s.kind == SwitchKind.tv ? s.copyWith(isOn: true) : s],
+          media: [for (final m in _home.media) m.kind == MediaKind.tv ? m.copyWith(isOn: true, isPlaying: true) : m],
         );
         covers(0, room: 'salon');
       case SceneKind.night:
         _home = _home.copyWith(
           lights: [for (final l in _home.lights) light(l, false)],
-          switches: [
-            for (final s in _home.switches)
-              s.kind == SwitchKind.tv || s.kind == SwitchKind.coffee ? s.copyWith(isOn: false) : s,
-          ],
+          switches: [for (final s in _home.switches) s.kind == SwitchKind.coffee ? s.copyWith(isOn: false) : s],
+          media: [for (final m in _home.media) m.applied(MediaCommand.turnOff)],
         );
         covers(0);
         climates(ClimateMode.eco);
@@ -429,7 +434,6 @@ HomeState demoHome() => const HomeState(
     CoverDevice(id: 'cover.cuisine', name: 'Fenêtre', roomId: 'cuisine', position: 100),
   ],
   switches: [
-    SwitchDevice(id: 'switch.tv', name: 'Télévision', roomId: 'salon', kind: SwitchKind.tv),
     SwitchDevice(id: 'switch.enceinte', name: 'Enceinte', roomId: 'salon', isOn: true, kind: SwitchKind.speaker),
     SwitchDevice(id: 'switch.cafe', name: 'Machine à café', roomId: 'cuisine', kind: SwitchKind.coffee),
     SwitchDevice(id: 'switch.ventilo', name: 'Ventilateur', roomId: 'chambre', kind: SwitchKind.fan),
@@ -458,6 +462,21 @@ HomeState demoHome() => const HomeState(
       roomId: 'salon',
       state: VacuumState.docked,
       battery: 100,
+    ),
+  ],
+  media: [
+    MediaDevice(
+      id: 'media_player.tele',
+      name: 'Télévision',
+      roomId: 'salon',
+      kind: MediaKind.tv,
+      volume: 0.25,
+      title: 'Netflix',
+      canTurnOn: true,
+      canTurnOff: true,
+      canVolume: true,
+      canMute: true,
+      canPlayPause: true,
     ),
   ],
   scenes: [

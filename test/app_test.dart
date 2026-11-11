@@ -13,6 +13,7 @@ import 'package:sdash/state/home_controller.dart';
 import 'package:sdash/ui/navigation.dart';
 import 'package:sdash/ui/pages/climate_page.dart';
 import 'package:sdash/ui/shell.dart';
+import 'package:sdash/ui/widgets/controls.dart';
 import 'package:sdash/ui/widgets/tiles.dart';
 
 /// Charge la vraie police pour que les mesures de texte correspondent à l'appareil.
@@ -173,6 +174,30 @@ void main() {
     await tester.tap(find.byTooltip('Lancer Robot aspirateur'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(robot().state, VacuumState.cleaning);
+
+    await tearDownApp(tester, controller);
+  });
+
+  testWidgets('accueil : la télé s’allume et son volume se règle', (tester) async {
+    final controller = await pumpApp(tester, const Size(412, 915));
+    MediaDevice tv() => controller.state.media.single;
+
+    await tester.ensureVisible(find.byTooltip('Allumer Télévision'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      tester.widget<SquareButton>(find.widgetWithIcon(SquareButton, Icons.volume_up_rounded)).onPressed,
+      isNull,
+      reason: 'volume inactif tant que la télé est éteinte',
+    );
+    await tester.tap(find.byTooltip('Allumer Télévision'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tv().isOn, isTrue);
+
+    await tester.tap(find.byTooltip('Monter le volume de Télévision'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tv().volume, closeTo(0.35, 0.001));
+    expect(find.text('35 %'), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
     await tearDownApp(tester, controller);
   });

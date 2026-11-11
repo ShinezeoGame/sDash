@@ -325,6 +325,96 @@ class VacuumDevice implements Identified {
   );
 }
 
+/// Télé, enceinte connectée ou passerelle de streaming (entités `media_player`).
+enum MediaKind { tv, speaker, streamer, generic }
+
+MediaKind guessMediaKind(String name, [String? deviceClass]) {
+  final n = name.toLowerCase().replaceAll('_', ' ');
+  if (RegExp(r'fire ?(tv|stick)|chromecast|shield|apple ?tv|stick|box').hasMatch(n)) return MediaKind.streamer;
+  if (deviceClass == 'tv' || RegExp(r'\btv\b|télé|tele|hisense|vidaa|bravia|oled').hasMatch(n)) return MediaKind.tv;
+  if (deviceClass == 'speaker' ||
+      deviceClass == 'receiver' ||
+      RegExp(r'echo|alexa|enceinte|sonos|speaker|homepod|nest').hasMatch(n)) {
+    return MediaKind.speaker;
+  }
+  return MediaKind.generic;
+}
+
+enum MediaCommand { turnOn, turnOff, playPause, volumeUp, volumeDown, toggleMute }
+
+class MediaDevice implements Identified {
+  const MediaDevice({
+    required this.id,
+    required this.name,
+    this.roomId,
+    this.kind = MediaKind.generic,
+    this.isOn = false,
+    this.isPlaying = false,
+    this.volume,
+    this.muted = false,
+    this.title,
+    this.available = true,
+    this.canTurnOn = false,
+    this.canTurnOff = false,
+    this.canVolume = false,
+    this.canMute = false,
+    this.canPlayPause = false,
+  });
+
+  @override
+  final String id;
+  final String name;
+  final String? roomId;
+  final MediaKind kind;
+  final bool isOn;
+  final bool isPlaying;
+
+  /// Volume entre 0 et 1, si l'appareil le communique.
+  final double? volume;
+  final bool muted;
+
+  /// Ce qui est en cours : titre, application ou source.
+  final String? title;
+  final bool available;
+
+  final bool canTurnOn;
+  final bool canTurnOff;
+  final bool canVolume;
+  final bool canMute;
+  final bool canPlayPause;
+
+  /// Vrai si la tuile affiche la rangée volume / lecture.
+  bool get hasControls => canVolume || canMute || canPlayPause;
+
+  /// État attendu après une commande (pas de volume de 10 %, celui de Home Assistant).
+  MediaDevice applied(MediaCommand command) => switch (command) {
+    MediaCommand.turnOn => copyWith(isOn: true),
+    MediaCommand.turnOff => copyWith(isOn: false, isPlaying: false),
+    MediaCommand.playPause => copyWith(isPlaying: !isPlaying),
+    MediaCommand.volumeUp => copyWith(volume: ((volume ?? 0.5) + 0.1).clamp(0.0, 1.0)),
+    MediaCommand.volumeDown => copyWith(volume: ((volume ?? 0.5) - 0.1).clamp(0.0, 1.0)),
+    MediaCommand.toggleMute => copyWith(muted: !muted),
+  };
+
+  MediaDevice copyWith({bool? isOn, bool? isPlaying, double? volume, bool? muted}) => MediaDevice(
+    id: id,
+    name: name,
+    roomId: roomId,
+    kind: kind,
+    isOn: isOn ?? this.isOn,
+    isPlaying: isPlaying ?? this.isPlaying,
+    volume: volume ?? this.volume,
+    muted: muted ?? this.muted,
+    title: title,
+    available: available,
+    canTurnOn: canTurnOn,
+    canTurnOff: canTurnOff,
+    canVolume: canVolume,
+    canMute: canMute,
+    canPlayPause: canPlayPause,
+  );
+}
+
 enum SceneKind { cosy, movie, night, morning, away, generic }
 
 SceneKind guessSceneKind(String name) {
@@ -384,6 +474,7 @@ class HomeState {
     this.switches = const [],
     this.computers = const [],
     this.vacuums = const [],
+    this.media = const [],
     this.scenes = const [],
     this.outdoorTemp,
     this.weather = WeatherKind.unknown,
@@ -400,6 +491,7 @@ class HomeState {
   final List<SwitchDevice> switches;
   final List<ComputerDevice> computers;
   final List<VacuumDevice> vacuums;
+  final List<MediaDevice> media;
   final List<SceneItem> scenes;
   final double? outdoorTemp;
   final WeatherKind weather;
@@ -415,6 +507,7 @@ class HomeState {
       switches.isEmpty &&
       computers.isEmpty &&
       vacuums.isEmpty &&
+      media.isEmpty &&
       scenes.isEmpty;
 
   Room? room(String? id) {
@@ -446,6 +539,7 @@ class HomeState {
     List<SwitchDevice>? switches,
     List<ComputerDevice>? computers,
     List<VacuumDevice>? vacuums,
+    List<MediaDevice>? media,
     List<SceneItem>? scenes,
     double? outdoorTemp,
     WeatherKind? weather,
@@ -459,6 +553,7 @@ class HomeState {
     switches: switches ?? this.switches,
     computers: computers ?? this.computers,
     vacuums: vacuums ?? this.vacuums,
+    media: media ?? this.media,
     scenes: scenes ?? this.scenes,
     outdoorTemp: outdoorTemp ?? this.outdoorTemp,
     weather: weather ?? this.weather,

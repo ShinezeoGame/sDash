@@ -51,6 +51,8 @@ class _HomeContent extends StatelessWidget {
       if (state.lights.isNotEmpty) (const _LightsSection(), header + 116.0 * ((lightsByRoom(state).length + 1) ~/ 2)),
       if (state.climates.isNotEmpty) (const _ClimateSection(), header + row * state.climates.length),
       if (state.covers.isNotEmpty) (const _CoversSection(), header + 64 + row * state.covers.length),
+      if (state.media.isNotEmpty)
+        (const _MediaSection(), header + state.media.fold(0.0, (sum, m) => sum + mediaTileHeight(m) + Dim.gap)),
       if (state.computers.isNotEmpty) (const _ComputersSection(), header + row * state.computers.length),
       if (state.vacuums.isNotEmpty) (const _VacuumsSection(), header + row * state.vacuums.length),
       if ((state.energyWeek ?? const []).isNotEmpty) (const _EnergySection(), header + 170.0),
@@ -432,6 +434,35 @@ class _ComputersSection extends StatelessWidget {
         for (var i = 0; i < computers.length; i++) ...[
           if (i > 0) const SizedBox(height: Dim.gap),
           SizedBox(height: 72, child: ComputerTile(pc: computers[i])),
+        ],
+      ],
+    );
+  }
+}
+
+// ───────────────────────────── Multimédia ─────────────────────────────
+
+class _MediaSection extends StatelessWidget {
+  const _MediaSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final media = HomeScope.of(context).state.media;
+    final allTv = media.every((m) => m.kind == MediaKind.tv);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SectionHeader(
+          title: allTv ? (media.length > 1 ? 'Télévisions' : 'Télévision') : 'Multimédia',
+          onOpen: () => ShellNav.go(context, AppSection.devices),
+        ),
+        for (var i = 0; i < media.length; i++) ...[
+          if (i > 0) const SizedBox(height: Dim.gap),
+          SizedBox(
+            height: mediaTileHeight(media[i]),
+            child: MediaTile(media: media[i]),
+          ),
         ],
       ],
     );

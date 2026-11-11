@@ -383,6 +383,12 @@ class HomeAssistantBackend implements HomeBackend {
   }, id);
 
   @override
+  Future<void> mediaCommand(String id, MediaCommand command) {
+    final (service, data) = mediaService(command, _entities[id]);
+    return _service('media_player', service, id, data);
+  }
+
+  @override
   Future<void> triggerEntity(String entityId) {
     final (domain, service) = triggerService(entityId);
     return _service(domain, service, entityId);
