@@ -108,9 +108,11 @@ directes, créez une clé une fois pour toutes :
 keytool -genkey -v -keystore sdash.jks -keyalg RSA -keysize 2048 -validity 10000 -alias sdash
 ```
 
-puis ajoutez ces secrets au dépôt (**Settings → Secrets and variables → Actions**) :
-`ANDROID_KEYSTORE_BASE64` (résultat de `base64 -w0 sdash.jks`), `ANDROID_KEYSTORE_PASSWORD`,
-`ANDROID_KEY_ALIAS` (`sdash`) et `ANDROID_KEY_PASSWORD`. Ne versionnez jamais le fichier `.jks`.
+puis ajoutez ces deux secrets au dépôt (**Settings → Secrets and variables → Actions**) :
+`ANDROID_KEYSTORE_BASE64` (résultat de `base64 -w0 sdash.jks`) et `ANDROID_KEYSTORE_PASSWORD`.
+`ANDROID_KEY_ALIAS` (par défaut `sdash`) et `ANDROID_KEY_PASSWORD` (par défaut le même mot de passe)
+sont facultatifs. Ne versionnez jamais le fichier `.jks` et gardez-en une copie : sans lui, la
+version suivante devra de nouveau être installée après désinstallation.
 
 ## Développement
 
