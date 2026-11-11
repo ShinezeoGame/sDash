@@ -233,15 +233,18 @@ class _NavItem extends StatelessWidget {
               children: [
                 Icon(section.icon, size: 26, color: selected ? c.accent : c.textMuted),
                 const SizedBox(height: 4),
-                Text(
-                  section.label,
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.fade,
-                  style: context.text.caption.copyWith(
-                    fontSize: 12.5,
-                    color: selected ? c.text : c.textMuted,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                // Sur un téléphone étroit, le libellé rétrécit au lieu d'être coupé.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    section.label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: context.text.caption.copyWith(
+                      fontSize: 12.5,
+                      color: selected ? c.text : c.textMuted,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    ),
                   ),
                 ),
               ],

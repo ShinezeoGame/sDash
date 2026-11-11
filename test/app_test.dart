@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -71,6 +72,27 @@ void main() {
         expect(tester.takeException(), isNull, reason: 'page ${section.label}');
       }
 
+      await tearDownApp(tester, controller);
+    });
+  }
+
+  for (final size in const [Size(412, 915), Size(360, 780)]) {
+    testWidgets('téléphone ${size.width.toInt()} px : les libellés du menu sont entiers', (tester) async {
+      final controller = await pumpApp(tester, size);
+      for (final section in AppSection.values) {
+        final nav = find.byKey(ValueKey('nav-${section.name}'));
+        await tester.tap(nav);
+        await tester.pump(const Duration(milliseconds: 450));
+        await tester.pump(const Duration(milliseconds: 450));
+        final label = tester.renderObject<RenderParagraph>(
+          find.descendant(of: nav, matching: find.text(section.label)),
+        );
+        expect(
+          label.size.width,
+          greaterThanOrEqualTo(label.getMaxIntrinsicWidth(double.infinity) - 0.5),
+          reason: '« ${section.label} » est coupé',
+        );
+      }
       await tearDownApp(tester, controller);
     });
   }
