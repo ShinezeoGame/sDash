@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/logo/sdash-logo-1024.png" width="148" alt="Logo sDash : un S blanc terminé par un point, sur fond orange"></p>
+<p align="center"><img src="docs/logo/sdash-logo-1024.png" width="148" alt="Logo sDash : une maison au trait clair et un point ambre, sur fond orange"></p>
 
 # sDash
 
@@ -148,14 +148,16 @@ l'interface `HomeBackend` (`lib/data/home_backend.dart`).
 
 ## Logo
 
-Un « S » tracé d'un seul trait, dont l'extrémité se détache en un point : une lumière
-allumée. À plat, deux couleurs, dans l'orange de l'application.
+sDash partage sa marque avec [sPhone](https://github.com/ShinezeoGame/sPhone) : le même carré
+orange, le même trait clair, et le même point ambre, toujours au même endroit. Seul le
+dessin change — ici une maison, dont le point est la lumière allumée. Le « S » seul, dont
+l'extrémité se détache pour devenir le point, est le signe de la marque.
 
-![Logo sDash et ses déclinaisons](docs/logo/presentation.jpg)
+![La marque « s » : le S, sDash et sPhone](docs/logo/presentation.jpg)
 
 Les sources vectorielles sont dans `docs/logo/` et se régénèrent avec
-`python3 tools/logo/generer_logo.py assets/fonts docs/logo` (variantes de couleur :
-ajouter `ambre` ou `sombre`).
+`python3 tools/logo/generer_logo.py assets/fonts docs/logo` ; les PNG (icônes Android et web,
+logo de l'application) s'exportent ensuite avec `python3 tools/logo/exporter.py`.
 
 ## Licences
 

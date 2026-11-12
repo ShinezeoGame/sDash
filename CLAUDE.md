@@ -21,8 +21,13 @@
   le mode démo (`DemoBackend`) est la source par défaut.
 - L'APK est produit par `.github/workflows/build-apk.yml` (artefact `sdash-apk`) et publié
   en Release (`sdash.apk`) à chaque envoi sur la branche par défaut.
-- Logo (l'utilisateur a demandé de remplacer l'ancien logo en cuir par « un truc moderne ») :
-  « S » géométrique blanc terminé par un point ambre, sur fond orange `#C2571A`, à plat.
-  Source : `tools/logo/generer_logo.py` → `docs/logo/*.svg` ; les PNG (mipmaps Android,
-  icônes web, `assets/branding/logo.png`) sont des exports de ces SVG. Le fond de l'icône
-  adaptative Android est la couleur `sdash_icon_background` (`values/colors.xml`).
+- Logo : sDash et sPhone (autre application de l'utilisateur) forment sa marque « s » ; il a
+  demandé que leurs logos aient un point commun tout en étant bien distincts. Règles : même
+  carré arrondi orange `#C2571A`, même trait clair à bouts ronds, et **le point ambre toujours
+  au même endroit et de la même taille** (en haut à droite). Seul le dessin change : maison
+  pour sDash, téléphone pour sPhone ; le « S » seul est le signe de la marque (c'était
+  l'ancien logo de sDash). À plat, sans texture ni dégradé.
+  Source : `tools/logo/generer_logo.py` (identique dans les deux dépôts, à garder synchronisé)
+  → `docs/logo/*.svg`, puis `tools/logo/exporter.py` → PNG (mipmaps Android, icônes web,
+  `assets/branding/logo.png`). Le fond de l'icône adaptative Android est la couleur
+  `sdash_icon_background` (`values/colors.xml`).
