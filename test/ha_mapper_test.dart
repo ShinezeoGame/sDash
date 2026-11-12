@@ -216,6 +216,52 @@ void main() {
     expect(mediaService(MediaCommand.volumeUp, null).$1, 'volume_up');
   });
 
+  test('télé DLNA : réveil par son adresse MAC et volume par pas de 2 %', () {
+    final registry = HaRegistry.fromLists(
+      areas: [
+        {'area_id': 'salon', 'name': 'Salon'},
+      ],
+      devices: [
+        {
+          'id': 'tv',
+          'area_id': 'salon',
+          'connections': [
+            ['upnp', 'uuid:0000'],
+            ['mac', 'b8:d8:2d:00:00:01'],
+          ],
+        },
+      ],
+      entities: [
+        {'entity_id': 'media_player.tv_salon', 'device_id': 'tv'},
+      ],
+    );
+    final idle = entity('media_player.tv_salon', 'idle', {
+      'friendly_name': 'TV Salon',
+      'volume_level': 0.2,
+      'is_volume_muted': false,
+      'supported_features': 1 | 4 | 8 | 512 | 16384,
+    });
+    final tv = mapHomeAssistant(states: {'media_player.tv_salon': idle}, registry: registry).media.single;
+    expect(tv.name, 'TV');
+    expect(tv.kind, MediaKind.tv);
+    expect(tv.isOn, isTrue, reason: '« Inactif » : allumée, sans lecture');
+    expect(tv.wakeMac, 'b8:d8:2d:00:00:01');
+    expect(tv.canWake, isTrue);
+
+    final asleep = mapHomeAssistant(
+      states: {
+        'media_player.tv_salon': entity('media_player.tv_salon', 'unavailable', {'friendly_name': 'TV Salon'}),
+      },
+      registry: registry,
+    ).media.single;
+    expect(asleep.looksOff, isTrue, reason: 'injoignable : éteinte, mais réveillable');
+
+    final (service, data) = mediaService(MediaCommand.volumeUp, idle);
+    expect(service, 'volume_set');
+    expect(data['volume_level'] as double, closeTo(0.22, 1e-9));
+    expect(mediaService(MediaCommand.volumeDown, idle).$2['volume_level'] as double, closeTo(0.18, 1e-9));
+  });
+
   group('appareils de l’inventaire réel', () {
     final registry = HaRegistry.fromLists(
       areas: [

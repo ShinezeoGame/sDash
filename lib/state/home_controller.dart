@@ -6,6 +6,7 @@ import '../data/demo_backend.dart';
 import '../data/direct_computers.dart';
 import '../data/home_assistant/ha_backend.dart';
 import '../data/home_backend.dart';
+import '../data/network/net_tools.dart' as net;
 import '../data/settings.dart';
 import '../data/system_bridge.dart';
 import '../models/home.dart';
@@ -337,7 +338,23 @@ class HomeController extends ChangeNotifier {
 
   /// Le volume n'est pas anticipé : son pas dépend de l'appareil. L'état réel reprend
   /// aussitôt la main, même juste après un allumage anticipé.
-  Future<void> mediaCommand(String id, MediaCommand command) {
+  Future<void> mediaCommand(String id, MediaCommand command) async {
+    final device = _state.media.where((m) => m.id == id).firstOrNull;
+    if (device == null) return;
+    if (command == MediaCommand.turnOn && device.canWake) {
+      // Une télé en veille n'est plus joignable par Home Assistant : la tablette la réveille.
+      try {
+        await net.sendMagicPacket(device.wakeMac!);
+        post('Allumage de « ${device.name} » demandé');
+      } catch (e) {
+        post(describeError(e), isError: true);
+      }
+      return;
+    }
+    if (command == MediaCommand.turnOff && !device.canTurnOff) {
+      post('« ${device.name} » ne peut pas encore être éteinte depuis sDash.', isError: true);
+      return;
+    }
     if (command == MediaCommand.volumeUp || command == MediaCommand.volumeDown) {
       _localEdits.remove(id);
     } else {

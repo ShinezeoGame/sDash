@@ -218,16 +218,18 @@ class MediaTile extends StatelessWidget {
     final t = context.text;
     final m = media;
     final on = m.available && m.isOn;
-    final status = !m.available
-        ? 'Indisponible'
-        : !m.isOn
+    final status = m.looksOff || (m.available && !m.isOn)
         ? 'À l’arrêt'
+        : !m.available
+        ? 'Indisponible'
         : [m.isPlaying ? 'En lecture' : 'En marche', if (m.title != null) m.title!].join(' · ');
-    final canPower = m.available && (on ? m.canTurnOff : m.canTurnOn);
+    // Allumage par Home Assistant ou par le réseau ; l'extinction impossible est expliquée.
+    final hasPower = m.canTurnOn || m.canTurnOff || m.canWake;
+    final canPower = on || (m.available && m.canTurnOn) || m.canWake;
     VoidCallback? send(MediaCommand command, bool enabled) => enabled ? () => home.mediaCommand(m.id, command) : null;
 
     return Opacity(
-      opacity: m.available ? 1 : 0.5,
+      opacity: m.available || m.looksOff ? 1 : 0.5,
       child: Tile(
         padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         child: Column(
@@ -255,7 +257,7 @@ class MediaTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (m.canTurnOn || m.canTurnOff) ...[
+                if (hasPower) ...[
                   const SizedBox(width: 10),
                   SquareButton(
                     icon: Icons.power_settings_new_rounded,

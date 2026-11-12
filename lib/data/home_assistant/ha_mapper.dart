@@ -46,6 +46,7 @@ class HaRegistry {
     this.areas = const [],
     this.entityArea = const {},
     this.entityDevice = const {},
+    this.deviceMac = const {},
     this.hidden = const {},
   });
 
@@ -57,6 +58,9 @@ class HaRegistry {
 
   /// Appareil auquel appartient chaque entité (relie l'aspirateur à son capteur de batterie).
   final Map<String, String> entityDevice;
+
+  /// Adresse MAC connue de chaque appareil (sert à réveiller une télé par le réseau).
+  final Map<String, String> deviceMac;
 
   /// Entités masquées, désactivées ou techniques (configuration / diagnostic).
   final Set<String> hidden;
@@ -79,6 +83,16 @@ class HaRegistry {
       for (final d in devices.whereType<Json>())
         if (d['id'] is String && d['area_id'] is String) d['id'] as String: d['area_id'] as String,
     };
+    final deviceMac = <String, String>{};
+    for (final d in devices.whereType<Json>()) {
+      final connections = d['connections'];
+      if (d['id'] is! String || connections is! List) continue;
+      for (final c in connections) {
+        if (c is List && c.length == 2 && c[0] == 'mac' && c[1] is String) {
+          deviceMac[d['id'] as String] = c[1] as String;
+        }
+      }
+    }
     final entityArea = <String, String>{};
     final entityDevice = <String, String>{};
     final hidden = <String>{};
@@ -93,7 +107,13 @@ class HaRegistry {
         hidden.add(id);
       }
     }
-    return HaRegistry(areas: rooms, entityArea: entityArea, entityDevice: entityDevice, hidden: hidden);
+    return HaRegistry(
+      areas: rooms,
+      entityArea: entityArea,
+      entityDevice: entityDevice,
+      deviceMac: deviceMac,
+      hidden: hidden,
+    );
   }
 }
 
@@ -287,6 +307,7 @@ HomeState mapHomeAssistant({
             canVolume: has(4) || has(1024),
             canMute: has(8),
             canPlayPause: has(1) || has(16384),
+            wakeMac: has(128) ? null : registry.deviceMac[registry.entityDevice[id]],
           ),
         );
       case 'scene' || 'script':
@@ -415,14 +436,31 @@ List<double>? parseEnergyWeek(dynamic result, String statisticId, DateTime now) 
 }
 
 /// Service `media_player` et données correspondant à une commande multimédia.
-(String, Json) mediaService(MediaCommand command, Json? state) => switch (command) {
+///
+/// Une télé dont le volume se règle directement monte ou descend de 2 % : le pas par
+/// défaut de Home Assistant (10 %) est trop grand pour une télé.
+(String, Json) mediaService(MediaCommand command, Json? state) {
+  final attrs = (state?['attributes'] as Json?) ?? const <String, dynamic>{};
+  final volume = _num(attrs['volume_level']);
+  final canSet = (_num(attrs['supported_features'])?.toInt() ?? 0) & 4 != 0;
+  final isTv =
+      guessMediaKind(
+        '${attrs['friendly_name'] ?? ''} ${state?['entity_id'] ?? ''}',
+        attrs['device_class'] as String?,
+      ) ==
+      MediaKind.tv;
+  if (isTv && canSet && volume != null) {
+    if (command == MediaCommand.volumeUp) return ('volume_set', {'volume_level': (volume + 0.02).clamp(0.0, 1.0)});
+    if (command == MediaCommand.volumeDown) return ('volume_set', {'volume_level': (volume - 0.02).clamp(0.0, 1.0)});
+  }
+  return _mediaDefaultService(command, attrs);
+}
+
+(String, Json) _mediaDefaultService(MediaCommand command, Json attrs) => switch (command) {
   MediaCommand.turnOn => ('turn_on', const {}),
   MediaCommand.turnOff => ('turn_off', const {}),
   MediaCommand.playPause => ('media_play_pause', const {}),
   MediaCommand.volumeUp => ('volume_up', const {}),
   MediaCommand.volumeDown => ('volume_down', const {}),
-  MediaCommand.toggleMute => (
-    'volume_mute',
-    {'is_volume_muted': !((state?['attributes'] as Json?)?['is_volume_muted'] == true)},
-  ),
+  MediaCommand.toggleMute => ('volume_mute', {'is_volume_muted': attrs['is_volume_muted'] != true}),
 };

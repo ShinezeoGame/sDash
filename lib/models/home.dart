@@ -359,6 +359,7 @@ class MediaDevice implements Identified {
     this.canVolume = false,
     this.canMute = false,
     this.canPlayPause = false,
+    this.wakeMac,
   });
 
   @override
@@ -382,6 +383,16 @@ class MediaDevice implements Identified {
   final bool canVolume;
   final bool canMute;
   final bool canPlayPause;
+
+  /// Adresse MAC de l'appareil : sans commande d'allumage, la tablette le réveille
+  /// par le réseau (Wake-on-LAN), comme une télé ajoutée par DLNA.
+  final String? wakeMac;
+
+  /// Allumage possible uniquement par le réseau.
+  bool get canWake => wakeMac != null && !canTurnOn;
+
+  /// Une télé réveillable et injoignable est simplement éteinte.
+  bool get looksOff => !available && canWake;
 
   /// Vrai si la tuile affiche la rangée volume / lecture.
   bool get hasControls => canVolume || canMute || canPlayPause;
@@ -412,6 +423,7 @@ class MediaDevice implements Identified {
     canVolume: canVolume,
     canMute: canMute,
     canPlayPause: canPlayPause,
+    wakeMac: wakeMac,
   );
 }
 
