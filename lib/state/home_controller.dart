@@ -352,8 +352,19 @@ class HomeController extends ChangeNotifier {
       return;
     }
     if (command == MediaCommand.turnOff && !device.canTurnOff) {
-      post('« ${device.name} » ne peut pas encore être éteinte depuis sDash.', isError: true);
-      return;
+      final via = _state.media.where((m) => m.id == device.offVia).firstOrNull;
+      if (via == null) {
+        post(
+          '« ${device.name} » ne sait pas s’éteindre seule : il faut un boîtier HDMI-CEC dans la même pièce.',
+          isError: true,
+        );
+        return;
+      }
+      // Le boîtier éteint la télé par HDMI-CEC en s'éteignant.
+      return _run(
+        (b) => b.mediaCommand(via.id, MediaCommand.turnOff),
+        success: 'Extinction de « ${device.name} » par « ${via.name} »',
+      );
     }
     if (command == MediaCommand.volumeUp || command == MediaCommand.volumeDown) {
       _localEdits.remove(id);

@@ -337,6 +337,15 @@ HomeState mapHomeAssistant({
         ),
   ];
 
+  // Une télé qui ne sait pas s'éteindre (DLNA) s'éteint avec la passerelle branchée dessus,
+  // par HDMI-CEC : on retient celle de la même pièce qui sait s'éteindre.
+  for (var i = 0; i < media.length; i++) {
+    final m = media[i];
+    if (m.kind != MediaKind.tv || m.canTurnOff || m.roomId == null) continue;
+    final via = media.where((o) => o.kind == MediaKind.streamer && o.roomId == m.roomId && o.canTurnOff).firstOrNull;
+    if (via != null) media[i] = m.copyWith(offVia: via.id);
+  }
+
   // Ne garde que les pièces réellement utilisées.
   final usedRooms = {
     ...lights.map((d) => d.roomId),

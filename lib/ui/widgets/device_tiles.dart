@@ -224,7 +224,7 @@ class MediaTile extends StatelessWidget {
         ? 'Indisponible'
         : [m.isPlaying ? 'En lecture' : 'En marche', if (m.title != null) m.title!].join(' · ');
     // Allumage par Home Assistant ou par le réseau ; l'extinction impossible est expliquée.
-    final hasPower = m.canTurnOn || m.canTurnOff || m.canWake;
+    final hasPower = m.canTurnOn || m.canPowerOff || m.canWake;
     final canPower = on || (m.available && m.canTurnOn) || m.canWake;
     VoidCallback? send(MediaCommand command, bool enabled) => enabled ? () => home.mediaCommand(m.id, command) : null;
 

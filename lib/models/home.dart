@@ -360,6 +360,7 @@ class MediaDevice implements Identified {
     this.canMute = false,
     this.canPlayPause = false,
     this.wakeMac,
+    this.offVia,
   });
 
   @override
@@ -388,6 +389,13 @@ class MediaDevice implements Identified {
   /// par le réseau (Wake-on-LAN), comme une télé ajoutée par DLNA.
   final String? wakeMac;
 
+  /// Passerelle de la même pièce (Freebox, Fire TV…) qui éteint cette télé par HDMI-CEC
+  /// quand elle ne sait pas s'éteindre seule.
+  final String? offVia;
+
+  /// Extinction possible, directement ou par la passerelle.
+  bool get canPowerOff => canTurnOff || offVia != null;
+
   /// Allumage possible uniquement par le réseau.
   bool get canWake => wakeMac != null && !canTurnOn;
 
@@ -407,7 +415,7 @@ class MediaDevice implements Identified {
     MediaCommand.toggleMute => copyWith(muted: !muted),
   };
 
-  MediaDevice copyWith({bool? isOn, bool? isPlaying, double? volume, bool? muted}) => MediaDevice(
+  MediaDevice copyWith({bool? isOn, bool? isPlaying, double? volume, bool? muted, String? offVia}) => MediaDevice(
     id: id,
     name: name,
     roomId: roomId,
@@ -424,6 +432,7 @@ class MediaDevice implements Identified {
     canMute: canMute,
     canPlayPause: canPlayPause,
     wakeMac: wakeMac,
+    offVia: offVia ?? this.offVia,
   );
 }
 

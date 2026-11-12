@@ -256,6 +256,36 @@ void main() {
     ).media.single;
     expect(asleep.looksOff, isTrue, reason: 'injoignable : éteinte, mais réveillable');
 
+    expect(tv.offVia, isNull, reason: 'aucun boîtier dans la pièce');
+
+    // Avec le Freebox Player (Android TV Remote) dans la même pièce, il éteint la télé par HDMI-CEC.
+    final withBox = mapHomeAssistant(
+      states: {
+        'media_player.tv_salon': idle,
+        'media_player.freebox_player_pop': entity('media_player.freebox_player_pop', 'off', {
+          'friendly_name': 'Freebox Player POP',
+          'supported_features': 128 | 256 | 1024 | 8 | 1 | 16384,
+        }),
+      },
+      registry: HaRegistry.fromLists(
+        areas: [
+          {'area_id': 'salon', 'name': 'Salon'},
+        ],
+        devices: [
+          {'id': 'tv', 'area_id': 'salon'},
+          {'id': 'box', 'area_id': 'salon'},
+        ],
+        entities: [
+          {'entity_id': 'media_player.tv_salon', 'device_id': 'tv'},
+          {'entity_id': 'media_player.freebox_player_pop', 'device_id': 'box'},
+        ],
+      ),
+    );
+    final linked = withBox.media.firstWhere((m) => m.id == 'media_player.tv_salon');
+    expect(linked.offVia, 'media_player.freebox_player_pop');
+    expect(linked.canPowerOff, isTrue);
+    expect(withBox.media.firstWhere((m) => m.id != linked.id).kind, MediaKind.streamer);
+
     final (service, data) = mediaService(MediaCommand.volumeUp, idle);
     expect(service, 'volume_set');
     expect(data['volume_level'] as double, closeTo(0.22, 1e-9));
