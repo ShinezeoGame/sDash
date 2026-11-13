@@ -27,7 +27,7 @@
   au même endroit et de la même taille** (en haut à droite). Seul le dessin change : maison
   pour sDash, téléphone pour sPhone ; le « S » seul est le signe de la marque (c'était
   l'ancien logo de sDash). À plat, sans texture ni dégradé.
-  Source : `tools/logo/generer_logo.py` (identique dans les deux dépôts, à garder synchronisé)
+  Source : `tools/logo/generer_logo.py` (identique dans les dépôts sDash, sPhone et sDrop, à garder synchronisé)
   → `docs/logo/*.svg`, puis `tools/logo/exporter.py` → PNG (mipmaps Android, icônes web,
   `assets/branding/logo.png`). Le fond de l'icône adaptative Android est la couleur
   `sdash_icon_background` (`values/colors.xml`).
