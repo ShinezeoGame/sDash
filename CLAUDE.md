@@ -21,6 +21,7 @@
   le mode démo (`DemoBackend`) est la source par défaut.
 - L'APK est produit par `.github/workflows/build-apk.yml` (artefact `sdash-apk`) et publié
   en Release (`sdash.apk`) à chaque envoi sur la branche par défaut.
+- Le README est une **vitrine** de l'appli, demandée par l'utilisateur : promesse, raisons de l'adopter, fonctionnalités illustrées, prise en main, questions fréquentes, famille sPack. Le pratique va dans `docs/GUIDE.md`, le technique dans `docs/DEVELOPPEMENT.md`. Ton publicitaire mais vrai : n'annoncer que ce que l'appli fait réellement.
 - Logo : sDash et sPhone (autre application de l'utilisateur) forment sa marque « s » ; il a
   demandé que leurs logos aient un point commun tout en étant bien distincts. Règles : même
   carré arrondi orange `#C2571A`, même trait clair à bouts ronds, le dessin de chaque application est **centré** dans le carré, et **le point ambre est posé ensuite dans l'angle en haut à droite**, toujours au même endroit et de la même taille (l'utilisateur a demandé de ne pas décaler le dessin pour faire de la place au point). Seul le dessin change : maison
