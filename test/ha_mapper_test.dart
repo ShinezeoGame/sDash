@@ -78,7 +78,8 @@ void main() {
     expect(climate.mode, ClimateMode.eco);
     expect(climate.isHeating, isTrue);
     expect(climate.targetTemp, 19.5);
-    expect(climate.supportedModes, containsAll(ClimateMode.values));
+    expect(climate.supportedModes, {ClimateMode.comfort, ClimateMode.eco, ClimateMode.away, ClimateMode.off});
+    expect(climate.canSetTarget, isTrue);
 
     final cover = home.covers.firstWhere((c) => c.id == 'cover.salon');
     expect(cover.position, 40);
@@ -119,6 +120,63 @@ void main() {
       [
         'set_hvac_mode',
         {'hvac_mode': 'off'},
+      ],
+    ]);
+  });
+
+  test('radiateurs Voltalis : programme « Auto », modes seuls, deux radiateurs dans une pièce', () {
+    Json voltalis(String id, String name, String state, String preset) => entity(id, state, {
+      'friendly_name': name,
+      'hvac_modes': ['off', 'heat', 'auto'],
+      'preset_modes': ['none', 'comfort', 'eco', 'away', 'temperature'],
+      'preset_mode': preset,
+      'temperature': 18.0,
+      'hvac_action': 'idle',
+      'supported_features': 16 | 128 | 256, // modes et marche / arrêt, sans consigne
+    });
+    final home = mapHomeAssistant(
+      states: {
+        'climate.radiateur_fenetre_climate': voltalis('climate.radiateur_fenetre_climate', 'Fenêtre', 'auto', 'eco'),
+        'climate.radiateur_porte_climate': voltalis('climate.radiateur_porte_climate', 'Porte', 'heat', 'comfort'),
+      },
+      registry: HaRegistry.fromLists(
+        areas: [
+          {'area_id': 'salon', 'name': 'Salon'},
+        ],
+        entities: [
+          {'entity_id': 'climate.radiateur_fenetre_climate', 'area_id': 'salon'},
+          {'entity_id': 'climate.radiateur_porte_climate', 'area_id': 'salon'},
+        ],
+      ),
+    );
+    final window = home.climates.firstWhere((c) => c.id == 'climate.radiateur_fenetre_climate');
+    final door = home.climates.firstWhere((c) => c.id == 'climate.radiateur_porte_climate');
+    expect(window.mode, ClimateMode.auto, reason: 'le programme Voltalis décide');
+    expect(door.mode, ClimateMode.comfort);
+    expect(window.supportedModes, containsAll(ClimateMode.values));
+    expect(window.canSetTarget, isFalse);
+    expect(window.currentTemp, isNull, reason: 'Voltalis ne mesure pas la température');
+    expect(home.climateName(window), 'Salon · Fenêtre');
+    expect(home.climateName(door), 'Salon · Porte');
+
+    List<List<Object>> calls(Json state, ClimateMode mode) => [
+      for (final (s, d) in climateModeCalls(state, mode)) [s, d],
+    ];
+    final auto = voltalis('climate.x', 'X', 'auto', 'eco');
+    expect(calls(auto, ClimateMode.comfort), [
+      [
+        'set_hvac_mode',
+        {'hvac_mode': 'heat'},
+      ],
+      [
+        'set_preset_mode',
+        {'preset_mode': 'comfort'},
+      ],
+    ], reason: 'un mode manuel quitte le programme');
+    expect(calls(auto, ClimateMode.auto), [
+      [
+        'set_hvac_mode',
+        {'hvac_mode': 'auto'},
       ],
     ]);
   });

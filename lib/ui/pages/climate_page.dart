@@ -9,7 +9,7 @@ import '../widgets/controls.dart';
 import '../widgets/tiles.dart';
 import 'page_scaffold.dart';
 
-const climateModeOrder = [ClimateMode.comfort, ClimateMode.eco, ClimateMode.away, ClimateMode.off];
+const climateModeOrder = [ClimateMode.auto, ClimateMode.comfort, ClimateMode.eco, ClimateMode.away, ClimateMode.off];
 
 class ClimatePage extends StatelessWidget {
   const ClimatePage({super.key});
@@ -51,7 +51,7 @@ class ClimateCard extends StatelessWidget {
     final c = context.colors;
     final t = context.text;
     final room = home.state.room(device.roomId);
-    final name = room?.name ?? device.name;
+    final name = home.state.climateName(device);
     final off = device.mode == ClimateMode.off;
     final heating = device.isHeating && !off;
     final adjustable = device.available && !off;
@@ -89,52 +89,55 @@ class ClimateCard extends StatelessWidget {
               ],
             ),
             const Spacer(),
-            Row(
-              children: [
-                SquareButton(
-                  icon: Icons.remove_rounded,
-                  tooltip: 'Baisser $name',
-                  size: 64,
-                  onPressed: adjustable ? () => home.nudgeClimate(device.id, -1) : null,
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          off ? 'Arrêt' : formatTemp(device.targetTemp),
-                          maxLines: 1,
-                          style: off ? t.display.copyWith(color: c.textFaint, fontSize: 40) : t.display,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      if (heating)
+            if (!device.canSetTarget)
+              _ModeOnly(device: device)
+            else
+              Row(
+                children: [
+                  SquareButton(
+                    icon: Icons.remove_rounded,
+                    tooltip: 'Baisser $name',
+                    size: 64,
+                    onPressed: adjustable ? () => home.nudgeClimate(device.id, -1) : null,
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.local_fire_department_rounded, size: 16, color: c.heat),
-                              const SizedBox(width: 4),
-                              Text('Consigne · chauffe', maxLines: 1, style: t.caption.copyWith(color: c.heat)),
-                            ],
+                          child: Text(
+                            off ? 'Arrêt' : formatTemp(device.targetTemp),
+                            maxLines: 1,
+                            style: off ? t.display.copyWith(color: c.textFaint, fontSize: 40) : t.display,
                           ),
-                        )
-                      else
-                        Text(off ? 'Chauffage coupé' : 'Consigne', style: t.caption),
-                    ],
+                        ),
+                        const SizedBox(height: 4),
+                        if (heating)
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.local_fire_department_rounded, size: 16, color: c.heat),
+                                const SizedBox(width: 4),
+                                Text('Consigne · chauffe', maxLines: 1, style: t.caption.copyWith(color: c.heat)),
+                              ],
+                            ),
+                          )
+                        else
+                          Text(off ? 'Chauffage coupé' : 'Consigne', style: t.caption),
+                      ],
+                    ),
                   ),
-                ),
-                SquareButton(
-                  icon: Icons.add_rounded,
-                  tooltip: 'Augmenter $name',
-                  size: 64,
-                  onPressed: adjustable ? () => home.nudgeClimate(device.id, 1) : null,
-                ),
-              ],
-            ),
+                  SquareButton(
+                    icon: Icons.add_rounded,
+                    tooltip: 'Augmenter $name',
+                    size: 64,
+                    onPressed: adjustable ? () => home.nudgeClimate(device.id, 1) : null,
+                  ),
+                ],
+              ),
             const Spacer(),
             Segmented<ClimateMode>(
               values: climateModeOrder.where(device.supportedModes.contains).toList(),
@@ -146,6 +149,42 @@ class ClimateCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Radiateur piloté uniquement par modes (fil pilote) : on affiche le mode, sans consigne.
+class _ModeOnly extends StatelessWidget {
+  const _ModeOnly({required this.device});
+
+  final ClimateDevice device;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final t = context.text;
+    final off = device.mode == ClimateMode.off;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(climateModeIcon(device.mode), size: 34, color: off ? c.textFaint : c.accent),
+              const SizedBox(width: 10),
+              Text(
+                device.mode.label,
+                maxLines: 1,
+                style: off ? t.display.copyWith(color: c.textFaint, fontSize: 40) : t.display.copyWith(fontSize: 44),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(off ? 'Chauffage coupé' : 'Mode du radiateur', style: t.caption),
+      ],
     );
   }
 }

@@ -66,10 +66,12 @@ class LightDevice implements Identified {
   );
 }
 
-enum ClimateMode { comfort, eco, away, off }
+/// `auto` : le programme du thermostat (planning Voltalis, Netatmo…) décide.
+enum ClimateMode { auto, comfort, eco, away, off }
 
 extension ClimateModeLabel on ClimateMode {
   String get label => switch (this) {
+    ClimateMode.auto => 'Auto',
     ClimateMode.comfort => 'Confort',
     ClimateMode.eco => 'Éco',
     ClimateMode.away => 'Hors-gel',
@@ -91,6 +93,7 @@ class ClimateDevice implements Identified {
     this.isHeating = false,
     this.humidity,
     this.supportedModes = const {ClimateMode.comfort, ClimateMode.eco, ClimateMode.away, ClimateMode.off},
+    this.canSetTarget = true,
     this.available = true,
   });
 
@@ -109,6 +112,9 @@ class ClimateDevice implements Identified {
   final bool isHeating;
   final double? humidity;
   final Set<ClimateMode> supportedModes;
+
+  /// Faux pour un radiateur piloté uniquement par modes (fil pilote) : pas de consigne.
+  final bool canSetTarget;
   final bool available;
 
   /// Arrondit et borne une consigne selon le pas et les limites de l'appareil.
@@ -136,6 +142,7 @@ class ClimateDevice implements Identified {
     isHeating: isHeating ?? this.isHeating,
     humidity: humidity,
     supportedModes: supportedModes,
+    canSetTarget: canSetTarget,
     available: available ?? this.available,
   );
 }
@@ -540,6 +547,14 @@ class HomeState {
   }
 
   String roomName(String? id) => room(id)?.name ?? 'Maison';
+
+  /// Nom affiché d'un thermostat : sa pièce, précisée s'il y en a plusieurs dans la pièce.
+  String climateName(ClimateDevice device) {
+    final r = room(device.roomId);
+    if (r == null) return device.name;
+    final shared = climates.where((c) => c.roomId == device.roomId).length > 1;
+    return shared && device.name != r.name ? '${r.name} · ${device.name}' : r.name;
+  }
 
   int get lightsOn => lights.where((l) => l.isOn).length;
 

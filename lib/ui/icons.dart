@@ -51,6 +51,7 @@ IconData weatherIcon(WeatherKind kind) => switch (kind) {
 };
 
 IconData climateModeIcon(ClimateMode mode) => switch (mode) {
+  ClimateMode.auto => Icons.schedule_rounded,
   ClimateMode.comfort => Icons.local_fire_department_rounded,
   ClimateMode.eco => Icons.eco_rounded,
   ClimateMode.away => Icons.ac_unit_rounded,
