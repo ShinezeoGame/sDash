@@ -101,10 +101,12 @@ Home Assistant est le premier pris en charge.
 sDash fait partie de **sPack**, une famille d'applications pratiques pour la maison, toutes
 dans le même style.
 
-| | | |
-| :---: | :---: | :---: |
-| <img src="docs/logo/famille/sdash.png" width="72" alt="Logo sDash"> | <a href="https://github.com/ShinezeoGame/sPhone"><img src="docs/logo/famille/sphone.png" width="72" alt="Logo sPhone"></a> | <a href="https://github.com/ShinezeoGame/sDrop"><img src="docs/logo/famille/sdrop.png" width="72" alt="Logo sDrop"></a> |
-| **sDash**<br>Toute la maison sur une tablette | **[sPhone](https://github.com/ShinezeoGame/sPhone)**<br>L'écran du téléphone sur le PC | **[sDrop](https://github.com/ShinezeoGame/sDrop)**<br>Fichiers et textes entre téléphone et PC |
+| | | | |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/logo/famille/sdash.png" width="72" alt="Logo sDash"> | <a href="https://github.com/ShinezeoGame/sPhone"><img src="docs/logo/famille/sphone.png" width="72" alt="Logo sPhone"></a> | <a href="https://github.com/ShinezeoGame/sDrop"><img src="docs/logo/famille/sdrop.png" width="72" alt="Logo sDrop"></a> | <a href="https://github.com/ShinezeoGame/sPing"><img src="docs/logo/famille/sping.png" width="72" alt="Logo sPing"></a> |
+| **sDash**<br>Toute la maison sur une tablette | **[sPhone](https://github.com/ShinezeoGame/sPhone)**<br>L'écran du téléphone sur le PC | **[sDrop](https://github.com/ShinezeoGame/sDrop)**<br>Fichiers et textes entre téléphone et PC | **[sPing](https://github.com/ShinezeoGame/sPing)**<br>Les notifications du téléphone sur le PC |
+| <a href="https://github.com/ShinezeoGame/sWatt"><img src="docs/logo/famille/swatt.png" width="72" alt="Logo sWatt"></a> | <a href="https://github.com/ShinezeoGame/sCam"><img src="docs/logo/famille/scam.png" width="72" alt="Logo sCam"></a> | <a href="https://github.com/ShinezeoGame/sBackup"><img src="docs/logo/famille/sbackup.png" width="72" alt="Logo sBackup"></a> |   |
+| **[sWatt](https://github.com/ShinezeoGame/sWatt)**<br>La consommation électrique de la maison<br><sub>bientôt</sub> | **[sCam](https://github.com/ShinezeoGame/sCam)**<br>Un vieux téléphone en caméra ou babyphone<br><sub>bientôt</sub> | **[sBackup](https://github.com/ShinezeoGame/sBackup)**<br>Les photos du téléphone sauvegardées sur le NAS<br><sub>bientôt</sub> |   |
 
 ---
 

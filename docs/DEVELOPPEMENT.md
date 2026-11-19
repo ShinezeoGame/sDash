@@ -58,14 +58,16 @@ version suivante devra de nouveau être installée après désinstallation.
 
 ## Logo
 
-sDash fait partie de la marque **sPack**, avec [sPhone](https://github.com/ShinezeoGame/sPhone)
-et [sDrop](https://github.com/ShinezeoGame/sDrop) : même carré orange, même trait clair, un
+sDash fait partie de la marque **sPack**, avec [sPhone](https://github.com/ShinezeoGame/sPhone),
+[sDrop](https://github.com/ShinezeoGame/sDrop), [sPing](https://github.com/ShinezeoGame/sPing),
+[sWatt](https://github.com/ShinezeoGame/sWatt), [sCam](https://github.com/ShinezeoGame/sCam) et
+[sBackup](https://github.com/ShinezeoGame/sBackup) : même carré orange, même trait clair, un
 dessin centré propre à chaque application (ici une maison), et le même point ambre posé dans
 l'angle en haut à droite.
 
-![La marque sPack : le S, sDash, sPhone et sDrop](logo/presentation.jpg)
+![La marque sPack : le S et les logos de sDash, sPhone, sDrop, sPing, sWatt, sCam et sBackup](logo/presentation.jpg)
 
-Les sources vectorielles sont dans `docs/logo/` et se régénèrent avec
+Les sources vectorielles sont dans `docs/logo/` et se régénèrent avec le générateur commun à sPack,
 `python3 tools/logo/generer_logo.py assets/fonts docs/logo` ; les PNG (icônes Android et web,
 logo de l'application) s'exportent ensuite avec `python3 tools/logo/exporter.py`.
 

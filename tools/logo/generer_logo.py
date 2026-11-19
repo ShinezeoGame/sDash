@@ -9,14 +9,18 @@ Le principe, commun à toutes les applications :
     lumière allumée, une notification.
 
 Seul le dessin change d'une application à l'autre : une maison pour sDash, un téléphone
-pour sPhone, une flèche qui tombe dans un bac pour sDrop. Le « S » seul, dont l'extrémité se détache pour devenir le point, est le signe
-de la marque elle-même. Ajouter une application, c'est ajouter un dessin dans `DESSINS`.
+pour sPhone, une flèche qui tombe dans un bac pour sDrop, une cloche pour sPing, un éclair
+pour sWatt, une caméra pour sCam, un disque pour sBackup. Le « S » seul, dont l'extrémité se
+détache pour devenir le point, est le signe de la marque elle-même. Ajouter une application,
+c'est ajouter un dessin dans `DESSINS`.
 
-Ce fichier est identique dans les dépôts sDash, sPhone et sDrop ; seule `APPLI_DU_DEPOT` diffère.
+Ce fichier est identique dans tous les dépôts de sPack (sDash, sPhone, sDrop, sPing, sWatt,
+sCam, sBackup) ; seule `APPLI_DU_DEPOT` diffère. Le modifier dans l'un, c'est le recopier
+dans les autres.
 
 Utilisation (nécessite `pip install fonttools`, pour vectoriser le texte du logotype) :
 
-    python3 tools/logo/generer_logo.py assets/fonts docs/logo [sdash|sphone|sdrop]
+    python3 tools/logo/generer_logo.py assets/fonts docs/logo [sdash|sphone|sdrop|sping|swatt|scam|sbackup]
 
 Produit, dans le dossier de sortie :
 
@@ -26,8 +30,8 @@ Produit, dans le dossier de sortie :
     sphone-logotype-sombre.svg  icône + « sPhone », pour fond sombre
     sphone-deconnecte.svg       icône éteinte (liaison coupée) — sPhone seulement
     sdash-icone-avant-plan.svg  dessin seul sur fond transparent : couche avant de l'icône
-                                adaptative Android — sDash et sDrop
-    sdash-icone-pleine.svg      carré plein sans arrondi, icônes web « maskable » — sDash et sDrop
+                                adaptative Android — toutes sauf sPhone
+    sdash-icone-pleine.svg      carré plein sans arrondi, icônes web « maskable » — toutes sauf sPhone
     marque-s.svg                le « S » de la marque
 
 Les PNG et les icônes des systèmes sont des exports de ces SVG : `tools/logo/exporter.py`.
@@ -71,6 +75,34 @@ BARRE_DE_GESTES = f'M{(G + D) // 2 - 44} {B - 104} H{(G + D) // 2 + 44}'
 MAISON = 'M268 474 L512 260 L756 474 M332 444 V764 H692 V444'
 # Dépôt : une flèche qui descend dans un bac.
 DEPOT = 'M512 242 V594 M372 454 L512 594 L652 454 M304 652 V782 H720 V652'
+# Cloche : un dôme, des flancs qui s'évasent, la base, et le battant (un arc) en dessous. Le point
+# est la lumière de la notification qui sonne.
+Y_DOME, R_DOME = 422, 150
+Y_BASE = Y_DOME + 190
+CLOCHE = (
+    f'M322 {Y_BASE} C344 {Y_BASE - 24} 362 {Y_BASE - 80} 362 {Y_DOME + 60} V{Y_DOME} '
+    f'A{R_DOME} {R_DOME} 0 0 1 662 {Y_DOME} V{Y_DOME + 60} C662 {Y_BASE - 80} 680 {Y_BASE - 24} 702 {Y_BASE} '
+    f'M292 {Y_BASE} H732 '
+    f'M442 {Y_BASE + 112} A96 96 0 0 0 582 {Y_BASE + 112}'
+)
+# Éclair : un éclair entier, au contour fermé, centré ; ses pointes restent à l'écart du point.
+ECLAIR = 'M543 205 L236 573 H512 L481 819 L788 451 H512 Z'
+# Caméra : un boîtier arrondi et son objectif en trapèze, comme une caméra vidéo.
+CAMERA = (
+    'M316 380 H524 A72 72 0 0 1 596 452 V572 A72 72 0 0 1 524 644 H316 A72 72 0 0 1 244 572 V452 '
+    'A72 72 0 0 1 316 380 Z M596 470 L780 404 V620 L596 554 Z'
+)
+# Disque : une pile de stockage vue de biais, celle du NAS où vont les photos. Le dessus en
+# ellipse, une bande au milieu, le bas arrondi.
+RX_DISQUE, RY_DISQUE = 212, 76
+G_DISQUE, D_DISQUE = 512 - RX_DISQUE, 512 + RX_DISQUE
+H_DISQUE, B_DISQUE = 336, 688  # centres des ellipses du haut et du bas
+DISQUE = (
+    f'M{G_DISQUE} {H_DISQUE} A{RX_DISQUE} {RY_DISQUE} 0 1 0 {D_DISQUE} {H_DISQUE} '
+    f'A{RX_DISQUE} {RY_DISQUE} 0 1 0 {G_DISQUE} {H_DISQUE} '
+    f'M{G_DISQUE} {H_DISQUE} V{B_DISQUE} A{RX_DISQUE} {RY_DISQUE} 0 0 0 {D_DISQUE} {B_DISQUE} V{H_DISQUE} '
+    f'M{G_DISQUE} {(H_DISQUE + B_DISQUE) // 2} A{RX_DISQUE} {RY_DISQUE} 0 0 0 {D_DISQUE} {(H_DISQUE + B_DISQUE) // 2}'
+)
 # « S » : barre haute, demi-cercle à gauche, barre médiane, demi-cercle à droite, barre
 # basse. Son point à lui est l'extrémité détachée de sa barre haute : il fait partie de la
 # lettre, et l'ensemble lettre + point est centré dans le carré.
@@ -87,8 +119,11 @@ S = (
 )
 
 DESSINS = {
+    'sbackup': {'nom': 'Backup', 'trace': DISQUE, 'devise': 'VOS PHOTOS, CHEZ VOUS', 'android': True},
+    'scam': {'nom': 'Cam', 'trace': CAMERA, 'devise': 'LE VIEUX TÉLÉPHONE QUI VEILLE', 'android': True},
     'sdash': {'nom': 'Dash', 'trace': MAISON, 'devise': 'TABLEAU DE BORD DOMOTIQUE', 'android': True},
     'sdrop': {'nom': 'Drop', 'trace': DEPOT, 'devise': 'DU TÉLÉPHONE AU PC, ET RETOUR', 'android': True},
+    'sping': {'nom': 'Ping', 'trace': CLOCHE, 'devise': 'LES NOTIFICATIONS DU TÉLÉPHONE SUR LE PC', 'android': True},
     'sphone': {
         'nom': 'Phone',
         'trace': TELEPHONE,
@@ -96,6 +131,7 @@ DESSINS = {
         'devise': 'LE TÉLÉPHONE SUR LE PC',
         'eteint': True,
     },
+    'swatt': {'nom': 'Watt', 'trace': ECLAIR, 'devise': 'L’ÉLECTRICITÉ DE LA MAISON', 'android': True},
 }
 A = DESSINS[APPLI]
 

@@ -25,9 +25,10 @@
 - Logo : sDash et sPhone (autre application de l'utilisateur) forment sa marque « s » ; il a
   demandé que leurs logos aient un point commun tout en étant bien distincts. Règles : même
   carré arrondi orange `#C2571A`, même trait clair à bouts ronds, le dessin de chaque application est **centré** dans le carré, et **le point ambre est posé ensuite dans l'angle en haut à droite**, toujours au même endroit et de la même taille (l'utilisateur a demandé de ne pas décaler le dessin pour faire de la place au point). Seul le dessin change : maison
-  pour sDash, téléphone pour sPhone ; le « S » seul est le signe de la marque (c'était
+  pour sDash, téléphone pour sPhone, une flèche qui tombe dans un bac pour sDrop, une cloche pour sPing, un éclair pour
+  sWatt, une caméra pour sCam, un disque pour sBackup ; le « S » seul est le signe de la marque (c'était
   l'ancien logo de sDash). À plat, sans texture ni dégradé.
-  Source : `tools/logo/generer_logo.py` (identique dans les dépôts sDash, sPhone et sDrop, à garder synchronisé)
+  Source : `tools/logo/generer_logo.py` (identique dans tous les dépôts de sPack, seule `APPLI_DU_DEPOT` diffère ; le recopier dans les autres après chaque modification)
   → `docs/logo/*.svg`, puis `tools/logo/exporter.py` → PNG (mipmaps Android, icônes web,
   `assets/branding/logo.png`). Le fond de l'icône adaptative Android est la couleur
   `sdash_icon_background` (`values/colors.xml`).
