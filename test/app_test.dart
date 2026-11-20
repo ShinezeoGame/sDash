@@ -259,4 +259,25 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tearDownApp(tester, controller);
   });
+
+  testWidgets('page Chauffage : un radiateur à modes seuls n’a pas de − / +, et passe en « Auto »', (tester) async {
+    final controller = await pumpApp(tester, const Size(412, 915));
+    await tester.tap(find.byKey(const ValueKey('nav-climate')));
+    await tester.pump(const Duration(milliseconds: 450));
+    await tester.pump(const Duration(milliseconds: 450));
+    ClimateDevice bedroom() => controller.state.climates.firstWhere((c) => c.id == 'climate.chambre');
+
+    expect(find.byTooltip('Augmenter Chambre'), findsNothing);
+    expect(find.text('Mode du radiateur'), findsOneWidget);
+    final card = find.widgetWithText(ClimateCard, 'Chambre');
+    await tester.ensureVisible(card);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.descendant(of: card, matching: find.text('Auto')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(bedroom().mode, ClimateMode.auto);
+    expect(tester.takeException(), isNull);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tearDownApp(tester, controller);
+  });
 }

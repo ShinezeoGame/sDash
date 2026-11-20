@@ -241,13 +241,17 @@ class _ClimateRow extends StatelessWidget {
     final home = HomeScope.of(context);
     final c = context.colors;
     final t = context.text;
-    final name = home.state.room(device.roomId)?.name ?? device.name;
+    final name = home.state.climateName(device);
     final off = device.mode == ClimateMode.off;
     final heating = device.isHeating && !off;
     final adjustable = device.available && !off;
+    // Sans consigne, le mode est affiché à droite : inutile de le répéter.
     final status = !device.available
         ? 'Indisponible'
-        : [if (device.currentTemp != null) formatTemp(device.currentTemp), if (!off) device.mode.label].join(' · ');
+        : [
+            if (device.currentTemp != null) formatTemp(device.currentTemp),
+            if (!off && device.canSetTarget) device.mode.label,
+          ].join(' · ');
     return SizedBox(
       height: 72,
       child: Opacity(
@@ -263,30 +267,49 @@ class _ClimateRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.itemTitle),
-                    Row(
-                      children: [
-                        if (heating) ...[
-                          Icon(Icons.local_fire_department_rounded, size: 17, color: c.heat, semanticLabel: 'Chauffe'),
-                          const SizedBox(width: 4),
+                    if (status.isNotEmpty || heating)
+                      Row(
+                        children: [
+                          if (heating) ...[
+                            Icon(
+                              Icons.local_fire_department_rounded,
+                              size: 17,
+                              color: c.heat,
+                              semanticLabel: 'Chauffe',
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Flexible(
+                            child: Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.secondary),
+                          ),
                         ],
-                        Flexible(
-                          child: Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.secondary),
-                        ),
-                      ],
-                    ),
+                      ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              StepperControl(
-                value: off ? 'Arrêt' : formatTemp(device.targetTemp),
-                valueStyle: off ? t.itemTitle.copyWith(color: c.textMuted) : null,
-                valueWidth: 70,
-                minusTooltip: 'Baisser $name',
-                plusTooltip: 'Augmenter $name',
-                onMinus: adjustable ? () => home.nudgeClimate(device.id, -1) : null,
-                onPlus: adjustable ? () => home.nudgeClimate(device.id, 1) : null,
-              ),
+              if (!device.canSetTarget)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(climateModeIcon(device.mode), size: 20, color: off ? c.textFaint : c.accent),
+                      const SizedBox(width: 6),
+                      Text(device.mode.label, style: t.itemTitle.copyWith(color: off ? c.textMuted : c.text)),
+                    ],
+                  ),
+                )
+              else
+                StepperControl(
+                  value: off ? 'Arrêt' : formatTemp(device.targetTemp),
+                  valueStyle: off ? t.itemTitle.copyWith(color: c.textMuted) : null,
+                  valueWidth: 70,
+                  minusTooltip: 'Baisser $name',
+                  plusTooltip: 'Augmenter $name',
+                  onMinus: adjustable ? () => home.nudgeClimate(device.id, -1) : null,
+                  onPlus: adjustable ? () => home.nudgeClimate(device.id, 1) : null,
+                ),
             ],
           ),
         ),

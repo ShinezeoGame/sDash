@@ -215,8 +215,11 @@ HomeState mapHomeAssistant({
         final presets = _strings(attrs['preset_modes']);
         final hvacModes = _strings(attrs['hvac_modes']);
         final preset = attrs['preset_mode'] as String?;
+        final features = _num(attrs['supported_features'])?.toInt();
         final mode = state == 'off'
             ? ClimateMode.off
+            : state == 'auto'
+            ? ClimateMode.auto
             : preset == 'eco'
             ? ClimateMode.eco
             : (_awayPresets.contains(preset) ? ClimateMode.away : ClimateMode.comfort);
@@ -234,11 +237,14 @@ HomeState mapHomeAssistant({
             isHeating: attrs['hvac_action'] == 'heating',
             humidity: _num(attrs['current_humidity']),
             supportedModes: {
+              if (hvacModes.contains('auto')) ClimateMode.auto,
               ClimateMode.comfort,
               if (presets.contains('eco')) ClimateMode.eco,
               if (presets.any(_awayPresets.contains)) ClimateMode.away,
               if (hvacModes.contains('off')) ClimateMode.off,
             },
+            // Consigne réglable (TARGET_TEMPERATURE ou plage) ; inconnu = on suppose que oui.
+            canSetTarget: features == null || features & 3 != 0,
             available: available,
           ),
         );
@@ -395,9 +401,20 @@ List<(String, Json)> climateModeCalls(Json? entityState, ClimateMode mode) {
       ('set_hvac_mode', {'hvac_mode': 'off'}),
     ];
   }
+  if (mode == ClimateMode.auto) {
+    return [
+      ('set_hvac_mode', {'hvac_mode': 'auto'}),
+    ];
+  }
   final calls = <(String, Json)>[];
-  if (entityState?['state'] == 'off') {
-    final heatMode = ['heat', 'auto', 'heat_cool'].firstWhere(hvacModes.contains, orElse: () => 'heat');
+  final current = entityState?['state'];
+  if (current == 'off' || current == 'auto') {
+    // Un mode manuel quitte l'arrêt ou le programme.
+    final heatMode = [
+      'heat',
+      'heat_cool',
+      if (current == 'off') 'auto',
+    ].firstWhere(hvacModes.contains, orElse: () => 'heat');
     calls.add(('set_hvac_mode', {'hvac_mode': heatMode}));
   }
   String? preset;
@@ -411,7 +428,7 @@ List<(String, Json)> climateModeCalls(Json? entityState, ClimateMode mode) {
     case ClimateMode.away:
       preset = _awayPresets.firstWhere(presets.contains, orElse: () => '');
       if (preset.isEmpty) preset = null;
-    case ClimateMode.off:
+    case ClimateMode.off || ClimateMode.auto:
       break;
   }
   if (preset != null) calls.add(('set_preset_mode', {'preset_mode': preset}));

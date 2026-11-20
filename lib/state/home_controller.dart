@@ -283,7 +283,7 @@ class HomeController extends ChangeNotifier {
 
   void nudgeClimate(String id, int steps) {
     final device = _state.climates.where((c) => c.id == id).firstOrNull;
-    if (device != null) setClimateTarget(id, device.targetTemp + steps * device.step);
+    if (device != null && device.canSetTarget) setClimateTarget(id, device.targetTemp + steps * device.step);
   }
 
   Future<void> setClimateMode(String id, ClimateMode mode) {

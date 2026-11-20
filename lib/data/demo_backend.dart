@@ -115,6 +115,7 @@ class DemoBackend implements HomeBackend {
     final memory = _setpoints.putIfAbsent(c.id, () => {});
     memory[c.mode] = c.targetTemp;
     final defaults = {
+      ClimateMode.auto: 20.0,
       ClimateMode.comfort: 21.0,
       ClimateMode.eco: 18.0,
       ClimateMode.away: 8.0,
@@ -415,6 +416,9 @@ HomeState demoHome() => const HomeState(
       targetTemp: 18.0,
       mode: ClimateMode.eco,
       humidity: 51,
+      // Radiateur à fil pilote (Voltalis) : modes seulement, avec le programme « Auto ».
+      supportedModes: {ClimateMode.auto, ClimateMode.comfort, ClimateMode.eco, ClimateMode.away, ClimateMode.off},
+      canSetTarget: false,
     ),
     ClimateDevice(id: 'climate.bureau', name: 'Bureau', roomId: 'bureau', currentTemp: 19.8, targetTemp: 20.0),
     ClimateDevice(
